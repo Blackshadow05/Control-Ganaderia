@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { type Ganado } from '@/lib/supabase';
 
 interface CattleEditFormProps {
@@ -187,9 +188,9 @@ export default function CattleEditForm({ cattle, onSubmit }: CattleEditFormProps
       </div>
 
       <div className="flex justify-end space-x-4">
-        <a href={`/cattle/${cattle.id}`} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+        <Link href={`/cattle/${cattle.id}`} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
           Cancelar
-        </a>
+        </Link>
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"

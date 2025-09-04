@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase, type AplicacionesAnimal } from '@/lib/supabase';
-import { Button } from '@/components/ui/Button';
 
 interface ApplicationsSectionProps {
   applications: AplicacionesAnimal[];
@@ -27,8 +26,9 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
           alert('Aplicación eliminada exitosamente');
           router.refresh(); // Refresh the page to update the list
         }
-      } catch (error: any) {
-        alert('Error al eliminar la aplicación: ' + error.message);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Error desconocido';
+        alert('Error al eliminar la aplicación: ' + message);
       }
     }
   };

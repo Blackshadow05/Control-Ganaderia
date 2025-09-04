@@ -38,7 +38,7 @@ async function updateCattle(id: number, formData: FormData) {
   // Validate data
   const validation = cattleSchema.safeParse(data);
   if (!validation.success) {
-    throw new Error('Datos inválidos: ' + validation.error.issues.map((e: any) => e.message).join(', '));
+    throw new Error('Datos inválidos: ' + validation.error.issues.map((issue: { message: string }) => issue.message).join(', '));
   }
 
   // Update in Supabase
