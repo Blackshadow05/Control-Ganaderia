@@ -155,14 +155,14 @@ export default function CattleSearch({ onSearch, onStatusFilter }: CattleSearchP
           )}
           {hasSearchTerm && (
             <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-              Búsqueda: "{searchTerm.trim()}"
+              Búsqueda: &quot;{searchTerm.trim()}&quot;
             </span>
           )}
         </div>
       )}
 
       <div className="mt-3 text-xs text-gray-500">
-        <p>💡 <strong>Consejo:</strong> Puedes buscar por ID del animal (ej: "VACA-001") o por nombre de finca (ej: "Finca Central")</p>
+        <p>💡 <strong>Consejo:</strong> Puedes buscar por ID del animal (ej: &quot;VACA-001&quot;) o por nombre de finca (ej: &quot;Finca Central&quot;)</p>
       </div>
     </div>
   );

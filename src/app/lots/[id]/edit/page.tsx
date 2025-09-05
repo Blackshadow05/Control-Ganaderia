@@ -14,7 +14,7 @@ async function updateLot(id: number, formData: FormData) {
   // Validate data
   const validation = fincaSchema.safeParse(data);
   if (!validation.success) {
-    throw new Error('Datos inválidos: ' + validation.error.issues.map((e: any) => e.message).join(', '));
+    throw new Error('Datos inválidos: ' + validation.error.issues.map((e: { message: string }) => e.message).join(', '));
   }
 
   // Update in Supabase

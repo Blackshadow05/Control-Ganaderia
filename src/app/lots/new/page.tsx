@@ -35,6 +35,8 @@ export default function NewLotPage() {
         return
       }
 
+      console.log('Test data read successfully:', testData)
+
       // Now try to insert
       const { error } = await supabase
         .from('Finca')

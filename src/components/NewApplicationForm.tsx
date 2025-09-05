@@ -99,6 +99,8 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
         return
       }
 
+      console.log('Test data read successfully:', testData)
+
       // Get local date in YYYY-MM-DD format
       const localDate = new Date().toLocaleDateString('en-CA'); // Canadian English gives YYYY-MM-DD format
 

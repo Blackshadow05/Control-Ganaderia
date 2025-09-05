@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 async function getTotalGanado() {
@@ -36,8 +37,6 @@ export default async function Dashboard() {
     { title: 'Ganado Vendido', value: ganadoVendido.toString(), icon: '💰', color: 'bg-red-500' },
   ];
 
-
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header Mobile Optimized */}
@@ -66,12 +65,11 @@ export default async function Dashboard() {
         ))}
       </div>
 
-
       {/* Quick Actions - Mobile Optimized */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Acciones Rápidas</h2>
         <div className="grid grid-cols-1 gap-3">
-          <a
+          <Link
             href="/cattle"
             className="bg-white rounded-xl p-4 border border-gray-100 hover:border-green-200 hover:shadow-md transition-all duration-200 flex items-center space-x-4"
           >
@@ -87,9 +85,9 @@ export default async function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
-          </a>
+          </Link>
           
-          <a
+          <Link
             href="/applications"
             className="bg-white rounded-xl p-4 border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-200 flex items-center space-x-4"
           >
@@ -105,9 +103,9 @@ export default async function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
-          </a>
+          </Link>
           
-          <a
+          <Link
             href="/lots"
             className="bg-white rounded-xl p-4 border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all duration-200 flex items-center space-x-4"
           >
@@ -123,7 +121,7 @@ export default async function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

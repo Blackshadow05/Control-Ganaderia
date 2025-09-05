@@ -163,7 +163,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
         <div className="text-center py-8">
           <div className="text-4xl mb-2">💉</div>
           <p className="text-gray-600">No hay aplicaciones registradas para este animal</p>
-          <p className="text-sm text-gray-500 mt-2">Haz click en "Nueva Aplicación" para comenzar</p>
+          <p className="text-sm text-gray-500 mt-2">Haz click en &quot;Nueva Aplicación&quot; para comenzar</p>
         </div>
       )}
     </div>

@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { supabase, type Ganado, type AplicacionesAnimal } from '@/lib/supabase';
 import ApplicationsSection from '@/components/ApplicationsSection';
 import CattleImage from '@/components/CattleImage';
-import { Button } from '@/components/ui/Button';
 
 // Fetch cattle data from Supabase
 async function getCattleById(id: number): Promise<Ganado | null> {
@@ -35,20 +34,6 @@ async function getApplicationsForAnimal(animalId: string): Promise<AplicacionesA
   }
 
   return data || [];
-}
-
-// Delete application
-async function deleteApplication(applicationId: number) {
-  'use server';
-
-  const { error } = await supabase
-    .from('AplicacionesAnimal')
-    .delete()
-    .eq('id', applicationId);
-
-  if (error) {
-    throw new Error('Error al eliminar la aplicación: ' + error.message);
-  }
 }
 
 interface PageProps {

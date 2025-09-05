@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface CattleImageProps {
   src: string;
@@ -65,12 +66,16 @@ export default function CattleImage({ src, alt, className = '' }: CattleImagePro
 
   return (
     <>
-      <img
+      <Image
         src={src}
         alt={alt}
+        width={300}
+        height={200}
         className={`${className} cursor-pointer hover:opacity-90 transition-opacity`}
         onError={() => setImageError(true)}
         onClick={openModal}
+        style={{ objectFit: 'cover' }}
+        unoptimized={true}
       />
 
       {/* Modal */}
@@ -105,10 +110,12 @@ export default function CattleImage({ src, alt, className = '' }: CattleImagePro
               onMouseLeave={handleMouseUp}
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              <Image
                 ref={imageRef}
                 src={src}
                 alt={alt}
+                width={1200}
+                height={800}
                 className="select-none max-w-full max-h-full object-contain"
                 style={{
                   transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
@@ -116,6 +123,7 @@ export default function CattleImage({ src, alt, className = '' }: CattleImagePro
                   transition: isDragging ? 'none' : 'transform 0.1s ease-out',
                 }}
                 draggable={false}
+                unoptimized={true}
               />
             </div>
 
