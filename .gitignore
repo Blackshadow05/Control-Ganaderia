@@ -42,3 +42,6 @@ next-env.d.ts
 
 # kilocode
 .kilocode/mcp.json
+
+# Local Netlify folder
+.netlify
