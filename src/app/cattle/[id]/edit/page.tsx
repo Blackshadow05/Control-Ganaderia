@@ -33,6 +33,7 @@ async function updateCattle(id: number, formData: FormData) {
     farm_nombre: formData.get('farm_nombre') as string,
     fecha_compra: formData.get('fecha_compra') as string,
     fecha_venta: formData.get('fecha_venta') ? formData.get('fecha_venta') as string : null,
+    Imagen: formData.get('Imagen') as string || null,
   };
 
   // Validate data

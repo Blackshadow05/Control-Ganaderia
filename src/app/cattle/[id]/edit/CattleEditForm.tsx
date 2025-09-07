@@ -39,6 +39,13 @@ export default function CattleEditForm({ cattle, onSubmit }: CattleEditFormProps
 
   return (
     <form action={onSubmit} className="space-y-6">
+      {/* Campo oculto para Imagen */}
+      <input
+        type="hidden"
+        name="Imagen"
+        value={cattle.Imagen || ''}
+      />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="id_animal" className="block text-sm font-medium text-gray-700">

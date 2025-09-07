@@ -1,8 +1,25 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { supabase, type Ganado, type AplicacionesAnimal } from '@/lib/supabase';
 import ApplicationsSection from '@/components/ApplicationsSection';
 import CattleImage from '@/components/CattleImage';
+import DeleteCattleButton from '@/components/DeleteCattleButton';
+
+// Server action to delete cattle
+async function deleteCattle(id: number) {
+  'use server';
+  
+  const { error } = await supabase
+    .from('Ganado')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new Error('Error al eliminar el ganado: ' + error.message);
+  }
+
+  redirect('/cattle');
+}
 
 // Fetch cattle data from Supabase
 async function getCattleById(id: number): Promise<Ganado | null> {
@@ -49,7 +66,6 @@ export default async function CattleDetailPage({ params }: PageProps) {
     notFound();
   }
 
-
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -61,10 +77,13 @@ export default async function CattleDetailPage({ params }: PageProps) {
             <h1 className="text-3xl font-bold text-gray-900">{cattle.id_animal}</h1>
             <p className="text-gray-600 mt-1">Detalles del ganado</p>
           </div>
-          <div className="ml-4">
+          <div className="ml-4 flex space-x-3">
             <Link href={`/cattle/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
               Editar Ganado
             </Link>
+            <form action={deleteCattle.bind(null, parseInt(id))}>
+              <DeleteCattleButton />
+            </form>
           </div>
         </div>
       </div>
