@@ -5,6 +5,10 @@ import ApplicationsSection from '@/components/ApplicationsSection';
 import CattleImage from '@/components/CattleImage';
 import DeleteCattleButton from '@/components/DeleteCattleButton';
 
+// Force dynamic rendering - NO CACHE
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Server action to delete cattle
 async function deleteCattle(id: number) {
   'use server';

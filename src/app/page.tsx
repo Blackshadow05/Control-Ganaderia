@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
+// Force dynamic rendering - NO CACHE
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getTotalGanado() {
   const { count, error } = await supabase
     .from('Ganado')

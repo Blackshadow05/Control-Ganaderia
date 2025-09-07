@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { supabase, type Ganado } from '@/lib/supabase';
 import CattleList from '@/components/CattleList';
 
+// Fetch cattle data from Supabase - NO CACHE
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Fetch cattle data from Supabase
 async function getCattle(): Promise<Ganado[]> {
   const { data, error } = await supabase
