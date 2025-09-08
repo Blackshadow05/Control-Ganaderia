@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { aplicacionesAnimalSchema, type AplicacionesAnimalForm } from '@/lib/validations'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
+import { getLocalDate, getMaxDate, isFutureDate } from '@/lib/dateUtils'
 
 interface NewApplicationFormProps {
   params: Promise<{ id: string }>
@@ -16,8 +17,9 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [animalId, setAnimalId] = useState<string>('')
-  const [productos, setProductos] = useState<string[]>([])
+  const [productos, setProductos] = useState<{id: number, nombre: string}[]>([])
   const [loadingProductos, setLoadingProductos] = useState(true)
+  const [fechaAplicacion, setFechaAplicacion] = useState<string>(getLocalDate())
 
   // Get the animal ID from params
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
       try {
         const { data, error } = await supabase
           .from('Aplicaciones')
-          .select('Nombre')
+          .select('id, Nombre')
           .not('Nombre', 'is', null)
 
         if (error) {
@@ -60,9 +62,12 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
           return
         }
 
-        // Get unique product names
-        const uniqueProductos = [...new Set(data.map(item => item.Nombre).filter(Boolean))]
-        setProductos(uniqueProductos)
+        // Store products with their IDs for foreign key reference
+        const productosMap = data.map(item => ({
+          id: item.id,
+          nombre: item.Nombre
+        }))
+        setProductos(productosMap)
       } catch (error) {
         console.error('Error loading products:', error)
       } finally {
@@ -101,16 +106,28 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
 
       console.log('Test data read successfully:', testData)
 
-      // Get local date in YYYY-MM-DD format
-      const localDate = new Date().toLocaleDateString('en-CA'); // Canadian English gives YYYY-MM-DD format
+      // Validate the application date (no timezone issues, just local date)
+      if (isFutureDate(fechaAplicacion)) {
+        alert('Error: No se pueden registrar aplicaciones con fechas futuras')
+        setIsSubmitting(false)
+        return
+      }
 
+      // Use the selected application date (local date)
+      const applicationDate = fechaAplicacion;
+
+      // Find the selected product to get its ID
+      const selectedProduct = productos.find(p => p.nombre === data.Producto)
+      
       const insertData = {
-        created_at: localDate,
+        created_at: applicationDate,  // Local date without timezone conversion
         Producto: data.Producto,
         Cantidad: data.Cantidad,
         Motivo: data.Motivo || null,
         Id_animal: animalId,
         Costo: data.Costo || null,
+        aplicacion_id: selectedProduct?.id || null, // Foreign key reference
+        Id_producto: selectedProduct?.id || null,  // Product ID for trigger
       };
 
       const { error, data: insertedData } = await supabase
@@ -166,9 +183,9 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
             <option value="">
               {loadingProductos ? 'Cargando productos...' : 'Selecciona un producto'}
             </option>
-            {!loadingProductos && productos.map((producto, index) => (
-              <option key={index} value={producto}>
-                {producto}
+            {!loadingProductos && productos.map((producto) => (
+              <option key={producto.id} value={producto.nombre}>
+                {producto.nombre}
               </option>
             ))}
           </select>
@@ -224,6 +241,23 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
           {errors.Motivo && (
             <p className="mt-1 text-sm text-red-600">{errors.Motivo.message}</p>
           )}
+        </div>
+
+        <div>
+          <label htmlFor="fechaAplicacion" className="block text-sm font-medium text-gray-700">
+            Fecha de Aplicación (hora local Costa Rica)
+          </label>
+          <input
+            type="date"
+            id="fechaAplicacion"
+            value={fechaAplicacion}
+            onChange={(e) => setFechaAplicacion(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            max={getMaxDate()} // No permite fechas futuras
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Fecha en que se realizó la aplicación (zona horaria: Costa Rica)
+          </p>
         </div>
 
         <div className="flex justify-end space-x-4">

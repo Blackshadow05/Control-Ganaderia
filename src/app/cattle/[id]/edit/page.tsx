@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { supabase, type Ganado } from '@/lib/supabase';
+import { supabase, type Ganado, type Finca } from '@/lib/supabase';
 import { cattleSchema } from '@/lib/validations';
 import CattleEditForm from './CattleEditForm';
 // Fetch cattle data from Supabase
@@ -19,22 +19,96 @@ async function getCattleById(id: number): Promise<Ganado | null> {
   return data;
 }
 
+// Fetch all fincas for the dropdown
+async function getFincas(): Promise<Finca[]> {
+  const { data, error } = await supabase
+    .from('Finca')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching fincas:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
 async function updateCattle(id: number, formData: FormData) {
   'use server';
 
+  const farmIdValue = formData.get('farm_id');
+  const farmId = farmIdValue ? parseInt(farmIdValue as string) : null;
+  
+  if (!farmId) {
+    throw new Error('ID de la finca es requerido');
+  }
+
+  // Get farm data to set farm_nombre
+  const { data: farmData, error: farmError } = await supabase
+    .from('Finca')
+    .select('*')
+    .eq('id', farmId)
+    .single();
+
+  if (farmError || !farmData) {
+    throw new Error('Error al obtener datos de la finca: ' + (farmError?.message || 'Finca no encontrada'));
+  }
+
+  // Get all form values with proper validation
+  const idAnimal = formData.get('id_animal') as string;
+  const pesoEntradaStr = formData.get('peso_entrada') as string;
+  const precioKgStr = formData.get('precio_kg') as string;
+  const precioCompraStr = formData.get('Precio_compra') as string;
+  const pesoSalidaStr = formData.get('peso_salida') as string;
+  const precioKgVentaStr = formData.get('precio_kg_venta') as string;
+  const precioVentaStr = formData.get('Precio_venta') as string;
+  const fechaCompra = formData.get('fecha_compra') as string;
+  const fechaVenta = formData.get('fecha_venta') as string;
+  const imagen = formData.get('Imagen') as string;
+
+  console.log('Form values:', {
+    idAnimal,
+    pesoEntradaStr,
+    precioKgStr,
+    precioCompraStr,
+    pesoSalidaStr,
+    precioKgVentaStr,
+    precioVentaStr,
+    fechaCompra,
+    fechaVenta,
+    imagen,
+    farmId
+  });
+
+  // Parse numeric values with validation
+  const pesoEntrada = pesoEntradaStr ? parseFloat(pesoEntradaStr) : null;
+  const precioKg = precioKgStr ? parseFloat(precioKgStr) : null;
+  const precioCompra = precioCompraStr ? parseFloat(precioCompraStr) : null;
+  const pesoSalida = pesoSalidaStr ? parseFloat(pesoSalidaStr) : null;
+  const precioKgVenta = precioKgVentaStr ? parseFloat(precioKgVentaStr) : null;
+  const precioVenta = precioVentaStr ? parseFloat(precioVentaStr) : null;
+
+  if (!idAnimal || !pesoEntrada || !precioKg || !fechaCompra) {
+    throw new Error('Campos requeridos faltantes: id_animal, peso_entrada, precio_kg, fecha_compra');
+  }
+
   const data = {
-    id_animal: formData.get('id_animal') as string,
-    peso_entrada: parseFloat(formData.get('peso_entrada') as string),
-    precio_kg: parseFloat(formData.get('precio_kg') as string),
-    Precio_compra: formData.get('Precio_compra') ? parseFloat(formData.get('Precio_compra') as string) : null,
-    peso_salida: formData.get('peso_salida') ? parseFloat(formData.get('peso_salida') as string) : null,
-    precio_kg_venta: formData.get('precio_kg_venta') ? parseFloat(formData.get('precio_kg_venta') as string) : null,
-    Precio_venta: formData.get('Precio_venta') ? parseFloat(formData.get('Precio_venta') as string) : null,
-    farm_nombre: formData.get('farm_nombre') as string,
-    fecha_compra: formData.get('fecha_compra') as string,
-    fecha_venta: formData.get('fecha_venta') ? formData.get('fecha_venta') as string : null,
-    Imagen: formData.get('Imagen') as string || null,
+    id_animal: idAnimal,
+    peso_entrada: pesoEntrada,
+    precio_kg: precioKg,
+    Precio_compra: precioCompra,
+    peso_salida: pesoSalida,
+    precio_kg_venta: precioKgVenta,
+    Precio_venta: precioVenta,
+    farm_id: farmId,
+    farm_nombre: `${farmData["Nombre-finca"]} - ${farmData["Nombre_apartado"]}`,
+    fecha_compra: fechaCompra,
+    fecha_venta: fechaVenta || null,
+    Imagen: imagen || null,
   };
+
+  console.log('Data to validate:', data);
 
   // Validate data
   const validation = cattleSchema.safeParse(data);
@@ -63,7 +137,10 @@ interface PageProps {
 
 export default async function CattleEditPage({ params }: PageProps) {
   const { id } = await params;
-  const cattle = await getCattleById(parseInt(id));
+  const [cattle, fincas] = await Promise.all([
+    getCattleById(parseInt(id)),
+    getFincas()
+  ]);
 
   if (!cattle) {
     notFound();
@@ -80,7 +157,7 @@ export default async function CattleEditPage({ params }: PageProps) {
       </div>
 
       <div className="bg-white shadow rounded-lg p-6">
-        <CattleEditForm cattle={cattle} onSubmit={updateCattle.bind(null, cattle.id)} />
+        <CattleEditForm cattle={cattle} fincas={fincas} onSubmit={updateCattle.bind(null, cattle.id)} />
       </div>
     </div>
   );

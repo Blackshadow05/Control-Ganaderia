@@ -30,7 +30,8 @@ export interface Ganado {
   peso_salida: number | null
   precio_kg_venta: number | null
   Precio_venta: number | null
-  farm_nombre: string
+  farm_nombre: string  // Mantenemos esto por compatibilidad temporal
+  farm_id: number | null  // Nueva relación por ID
   fecha_compra: string
   fecha_venta: string | null
   Imagen: string | null
@@ -59,4 +60,18 @@ export interface AplicacionesAnimal {
   Motivo: string | null
   Id_animal: string | null
   Costo: number | null
+  aplicacion_id: number | null  // Foreign key field
+  Id_producto: number | null    // Product ID field for trigger
+}
+
+// View interface for reading data with current product names
+export interface AplicacionesAnimalView {
+  id: number
+  created_at: string  // This field serves as the application date
+  Producto: string | null  // This will show the current name from Aplicaciones
+  Cantidad: string | null
+  Motivo: string | null
+  Id_animal: string | null
+  Costo: number | null
+  aplicacion_id: number | null
 }

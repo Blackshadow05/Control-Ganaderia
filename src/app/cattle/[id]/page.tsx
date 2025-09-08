@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { supabase, type Ganado, type AplicacionesAnimal } from '@/lib/supabase';
+import { supabase, type Ganado, type AplicacionesAnimalView } from '@/lib/supabase';
 import ApplicationsSection from '@/components/ApplicationsSection';
 import CattleImage from '@/components/CattleImage';
 import DeleteCattleButton from '@/components/DeleteCattleButton';
+import { formatDateDisplay } from '@/lib/formatDateLocal';
 
 // Force dynamic rendering - NO CACHE
 export const dynamic = 'force-dynamic';
@@ -41,10 +42,10 @@ async function getCattleById(id: number): Promise<Ganado | null> {
   return data;
 }
 
-// Fetch applications for this animal from Supabase
-async function getApplicationsForAnimal(animalId: string): Promise<AplicacionesAnimal[]> {
+// Fetch applications for this animal from Supabase using the view
+async function getApplicationsForAnimal(animalId: string): Promise<AplicacionesAnimalView[]> {
   const { data, error } = await supabase
-    .from('AplicacionesAnimal')
+    .from('AplicacionesAnimal_View')
     .select('*')
     .eq('Id_animal', animalId)
     .order('created_at', { ascending: false });
@@ -119,6 +120,12 @@ export default async function CattleDetailPage({ params }: PageProps) {
                 <dt className="text-sm font-medium text-gray-500">Finca</dt>
                 <dd className="text-sm text-gray-900">{cattle.farm_nombre}</dd>
               </div>
+              {cattle.farm_id && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">ID Finca</dt>
+                  <dd className="text-sm text-gray-900">{cattle.farm_id}</dd>
+                </div>
+              )}
               <div>
                 <dt className="text-sm font-medium text-gray-500">Peso de Entrada</dt>
                 <dd className="text-sm text-gray-900">{cattle.peso_entrada} kg</dd>
@@ -151,12 +158,12 @@ export default async function CattleDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Fecha de Compra</dt>
-                <dd className="text-sm text-gray-900">{new Date(cattle.fecha_compra).toLocaleDateString('es-ES')}</dd>
+                <dd className="text-sm text-gray-900">{formatDateDisplay(cattle.fecha_compra)}</dd>
               </div>
               {cattle.fecha_venta && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Fecha de Venta</dt>
-                  <dd className="text-sm text-gray-900">{new Date(cattle.fecha_venta).toLocaleDateString('es-ES')}</dd>
+                  <dd className="text-sm text-gray-900">{formatDateDisplay(cattle.fecha_venta)}</dd>
                 </div>
               )}
               {cattle.peso_salida && (

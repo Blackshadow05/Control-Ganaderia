@@ -6,11 +6,12 @@ export const cattleSchema = z.object({
   id_animal: z.string().min(1, 'ID del animal es requerido'),
   peso_entrada: z.number().min(0, 'Peso de entrada debe ser positivo'),
   precio_kg: z.number().min(0, 'Precio por kg debe ser positivo'),
-  Precio_compra: z.number().min(0, 'Precio de compra debe ser positivo').optional(),
+  Precio_compra: z.number().min(0, 'Precio de compra debe ser positivo').nullable().optional(),
   peso_salida: z.number().min(0).nullable().optional(),
   precio_kg_venta: z.number().min(0).nullable().optional(),
-  Precio_venta: z.number().min(0, 'Precio de venta debe ser positivo').optional(),
+  Precio_venta: z.number().min(0, 'Precio de venta debe ser positivo').nullable().optional(),
   farm_nombre: z.string().min(1, 'Nombre de la finca es requerido'),
+  farm_id: z.number().min(1, 'ID de la finca es requerido').nullable(),
   fecha_compra: z.string().min(1, 'Fecha de compra es requerida'),
   fecha_venta: z.string().nullable().optional(),
   Imagen: z.string().nullable().optional(),
@@ -55,6 +56,8 @@ export const aplicacionesAnimalSchema = z.object({
   Motivo: z.string().optional(),
   Id_animal: z.string().min(1, 'ID del animal es requerido'),
   Costo: z.number().min(0, 'Costo debe ser positivo').optional(),
+  aplicacion_id: z.number().optional().nullable(), // Foreign key field
+  Id_producto: z.number().optional().nullable(),   // Product ID for trigger
 });
 
 export type AplicacionesAnimalForm = z.infer<typeof aplicacionesAnimalSchema>;

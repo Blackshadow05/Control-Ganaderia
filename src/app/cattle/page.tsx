@@ -32,8 +32,8 @@ export default async function CattlePage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Ganado</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">Lista de ganado registrado</p>
         </div>
-        <Link 
-          href="/cattle/new" 
+        <Link
+          href="/cattle/new"
           className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center font-medium shadow-sm hover:shadow-md"
         >
           Agregar Ganado

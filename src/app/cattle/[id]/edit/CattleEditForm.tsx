@@ -2,17 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { type Ganado } from '@/lib/supabase';
+import { type Ganado, type Finca } from '@/lib/supabase';
+import { formatDateDisplay } from '@/lib/formatDateLocal';
 
 interface CattleEditFormProps {
   cattle: Ganado;
+  fincas: Finca[];
   onSubmit: (formData: FormData) => Promise<void>;
 }
 
-export default function CattleEditForm({ cattle, onSubmit }: CattleEditFormProps) {
+export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditFormProps) {
   const [pesoSalida, setPesoSalida] = useState('');
   const [precioKgVenta, setPrecioKgVenta] = useState('');
   const [precioVenta, setPrecioVenta] = useState('');
+  
+  // Log para debuggear
+  console.log('Cattle data:', cattle);
+  console.log('Fincas disponibles:', fincas);
+  console.log('farm_id actual:', cattle.farm_id);
 
   // Calculate Precio_venta when peso_salida or precio_kg_venta changes
   useEffect(() => {
@@ -62,17 +69,23 @@ export default function CattleEditForm({ cattle, onSubmit }: CattleEditFormProps
         </div>
 
         <div>
-          <label htmlFor="farm_nombre" className="block text-sm font-medium text-gray-700">
-            Nombre de la Finca
+          <label htmlFor="farm_id" className="block text-sm font-medium text-gray-700">
+            Ubicación - Finca
           </label>
-          <input
-            type="text"
-            id="farm_nombre"
-            name="farm_nombre"
-            defaultValue={cattle.farm_nombre}
+          <select
+            id="farm_id"
+            name="farm_id"
             required
+            defaultValue={cattle.farm_id?.toString() || ''}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-          />
+          >
+            <option value="">Selecciona una finca y apartado</option>
+            {fincas.map((finca) => (
+              <option key={finca.id} value={finca.id}>
+                {`${finca["Nombre-finca"] || ''} - ${finca["Nombre_apartado"] || ''}`}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -178,6 +191,9 @@ export default function CattleEditForm({ cattle, onSubmit }: CattleEditFormProps
             required
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
+          <p className="mt-1 text-sm text-gray-500">
+            Fecha actual registrada: {formatDateDisplay(cattle.fecha_compra)}
+          </p>
         </div>
 
         <div>
@@ -191,6 +207,11 @@ export default function CattleEditForm({ cattle, onSubmit }: CattleEditFormProps
             defaultValue={cattle.fecha_venta ? cattle.fecha_venta.split('T')[0] : ''}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
+          {cattle.fecha_venta && (
+            <p className="mt-1 text-sm text-gray-500">
+              Fecha actual registrada: {formatDateDisplay(cattle.fecha_venta)}
+            </p>
+          )}
         </div>
       </div>
 

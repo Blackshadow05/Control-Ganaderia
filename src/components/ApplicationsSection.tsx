@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase, type AplicacionesAnimal } from '@/lib/supabase';
+import { supabase, type AplicacionesAnimalView } from '@/lib/supabase';
+import { formatApplicationDate } from '@/lib/applicationDateUtils';
 
 interface ApplicationsSectionProps {
-  applications: AplicacionesAnimal[];
+  applications: AplicacionesAnimalView[];
   cattleId: string;
 }
 
@@ -88,7 +89,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
                       {app.Motivo || 'Sin motivo especificado'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(app.created_at).toLocaleDateString('es-ES')}
+                      {formatApplicationDate(app.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <Link
@@ -117,7 +118,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">{app.Producto}</h3>
                   <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {new Date(app.created_at).toLocaleDateString('es-ES')}
+                    {formatApplicationDate(app.created_at)}
                   </span>
                 </div>
 

@@ -2,12 +2,27 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { supabase, type Finca } from '@/lib/supabase';
 import { fincaSchema } from '@/lib/validations';
+import DeleteLotButton from '@/components/DeleteLotButton';
 
 async function updateLot(id: number, formData: FormData) {
   'use server';
 
+  // Get current lot data to compare names
+  const { data: currentLot, error: fetchError } = await supabase
+    .from('Finca')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) {
+    throw new Error('Error al obtener el lote actual: ' + fetchError.message);
+  }
+
+  const newFarmName = formData.get('Nombre-finca') as string;
+  const currentFarmName = currentLot['Nombre-finca'];
+
   const data = {
-    "Nombre-finca": formData.get('Nombre-finca') as string,
+    "Nombre-finca": newFarmName,
     "Nombre_apartado": formData.get('Nombre_apartado') as string,
   };
 
@@ -25,6 +40,36 @@ async function updateLot(id: number, formData: FormData) {
 
   if (error) {
     throw new Error('Error al actualizar el lote: ' + error.message);
+  }
+
+  // If farm name changed, update all related cattle records
+  if (currentFarmName && newFarmName !== currentFarmName) {
+    // Find all cattle records with this farm_id and update their farm_nombre
+    const { data: fincaData, error: fincaError } = await supabase
+      .from('Finca')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fincaError || !fincaData) {
+      throw new Error('Error al obtener datos actualizados de la finca: ' + (fincaError?.message || 'Finca no encontrada'));
+    }
+
+    const newFarmFullName = `${fincaData["Nombre-finca"]} - ${fincaData["Nombre_apartado"]}`;
+
+    console.log('Updating cattle with farm_id:', id, 'to new name:', newFarmFullName);
+
+    const { error: cattleUpdateError } = await supabase
+      .from('Ganado')
+      .update({ farm_nombre: newFarmFullName })
+      .eq('farm_id', id);
+
+    if (cattleUpdateError) {
+      console.error('Error updating cattle:', cattleUpdateError);
+      throw new Error('Error al actualizar el nombre de la finca en los registros de ganado: ' + cattleUpdateError.message);
+    }
+
+    console.log('Cattle records updated successfully');
   }
 
   redirect(`/lots/${id}`);
@@ -120,17 +165,10 @@ export default async function LotEditPage({ params }: PageProps) {
           </div>
 
           <div className="flex justify-between">
-            <form action={async () => {
-              'use server';
-              await deleteLot(lot.id);
-            }}>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-              >
-                Eliminar Lote
-              </button>
-            </form>
+            <DeleteLotButton
+              lotId={lot.id}
+              onDelete={deleteLot.bind(null, lot.id)}
+            />
 
             <div className="flex space-x-4">
               <Link href={`/lots/${id}`} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">

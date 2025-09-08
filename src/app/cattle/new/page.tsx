@@ -137,37 +137,37 @@ export default function NewCattlePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <Link href="/cattle" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-200">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <Link href="/cattle" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 sm:mb-6 transition-colors duration-200">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="font-medium">Volver a Ganado</span>
+            <span className="font-medium text-sm sm:text-base">Volver al Inicio</span>
           </Link>
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full mb-3 sm:mb-4">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Nuevo Ganado</h1>
-            <p className="text-gray-600 text-lg">Registra un nuevo animal en el sistema</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Nuevo Ganado</h1>
+            <p className="text-gray-600 text-base sm:text-lg">Registra un nuevo animal en el sistema</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
-            <h2 className="text-2xl font-semibold text-white">Información del Animal</h2>
-            <p className="text-blue-100 mt-1">Completa los datos básicos del nuevo registro</p>
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <h2 className="text-lg sm:text-2xl font-semibold text-white">Información del Animal</h2>
+            <p className="text-blue-100 mt-1 text-sm sm:text-base">Completa los datos básicos del nuevo registro</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
             {/* Información Básica */}
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Datos Generales</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Datos Generales</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label htmlFor="id_animal" className="block text-sm font-semibold text-gray-700 mb-2">
                     ID del Animal <span className="text-red-500">*</span>
@@ -177,25 +177,25 @@ export default function NewCattlePage() {
                     id="id_animal"
                     name="id_animal"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-4 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 text-base"
                     placeholder="Ej: VAC001, TORO-2024-001"
                   />
                   <p className="mt-1 text-xs text-gray-500">Identificador único para el animal</p>
                 </div>
 
                 <div>
-                  <label htmlFor="farm_nombre" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="farm_id" className="block text-sm font-semibold text-gray-700 mb-2">
                     Ubicación - Finca <span className="text-red-500">*</span>
                   </label>
                   <select
-                    id="farm_nombre"
-                    name="farm_nombre"
+                    id="farm_id"
+                    name="farm_id"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                    className="w-full px-4 py-4 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white text-base"
                   >
                     <option value="">Selecciona una finca y apartado</option>
                     {fincas.map((finca) => (
-                      <option key={finca.id} value={`${finca["Nombre-finca"] || ''} - ${finca["Nombre_apartado"] || ''}`}>
+                      <option key={finca.id} value={finca.id}>
                         {`${finca["Nombre-finca"] || ''} - ${finca["Nombre_apartado"] || ''}`}
                       </option>
                     ))}
@@ -207,8 +207,8 @@ export default function NewCattlePage() {
 
             {/* Datos de Compra */}
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Datos de Compra</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Datos de Compra</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label htmlFor="peso_entrada" className="block text-sm font-semibold text-gray-700 mb-2">
                     Peso de Entrada (kg) <span className="text-red-500">*</span>
@@ -221,8 +221,9 @@ export default function NewCattlePage() {
                     required
                     value={pesoEntrada}
                     onChange={(e) => setPesoEntrada(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-4 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 text-base"
                     placeholder="450.50"
+                    inputMode="decimal"
                   />
                   <p className="mt-1 text-xs text-gray-500">Peso inicial al momento de la compra</p>
                 </div>
@@ -239,8 +240,9 @@ export default function NewCattlePage() {
                     required
                     value={precioKg}
                     onChange={(e) => setPrecioKg(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-4 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 text-base"
                     placeholder="25.50"
+                    inputMode="decimal"
                   />
                   <p className="mt-1 text-xs text-gray-500">Precio pagado por kilogramo</p>
                 </div>
@@ -256,7 +258,7 @@ export default function NewCattlePage() {
                     step="0.01"
                     value={precioCompra}
                     readOnly
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 cursor-not-allowed"
+                    className="w-full px-4 py-4 md:py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 cursor-not-allowed text-base"
                     placeholder="0.00"
                   />
                   <p className="mt-1 text-xs text-gray-500">Calculado automáticamente: Peso × Precio/kg</p>
@@ -271,7 +273,7 @@ export default function NewCattlePage() {
                     id="fecha_compra"
                     name="fecha_compra"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-4 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-base"
                   />
                   <p className="mt-1 text-xs text-gray-500">Fecha en que se realizó la compra</p>
                 </div>
@@ -279,39 +281,41 @@ export default function NewCattlePage() {
             </div>
 
             {/* Image Upload Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Imagen del Animal</h3>
+            <div className="space-y-4 sm:space-y-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Imagen del Animal</h3>
 
               {!imagePreview && (
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors duration-200 bg-gray-50">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8 text-center hover:border-blue-400 transition-colors duration-200 bg-gray-50">
+                  <svg className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <h4 className="mt-2 text-sm font-medium text-gray-900">Sube una imagen</h4>
-                  <p className="mt-1 text-sm text-gray-500">O toma una foto con tu cámara</p>
+                  <h4 className="mt-2 text-sm sm:text-base font-medium text-gray-900">Sube una imagen</h4>
+                  <p className="mt-1 text-xs sm:text-sm text-gray-500">O toma una foto con tu cámara</p>
 
-                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
+                  <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
                     <button
                       type="button"
                       onClick={() => document.getElementById('gallery-input')?.click()}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
+                      className="inline-flex items-center justify-center px-6 py-4 sm:px-4 sm:py-3 border border-transparent text-base sm:text-sm font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-purple-500 transition-all duration-200 min-h-[48px]"
                     >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      Galería
+                      <span className="hidden sm:inline">Galería</span>
+                      <span className="sm:hidden">Foto</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => document.getElementById('camera-input')?.click()}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
+                      className="inline-flex items-center justify-center px-6 py-4 sm:px-4 sm:py-3 border border-transparent text-base sm:text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-all duration-200 min-h-[48px]"
                     >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      Cámara
+                      <span className="hidden sm:inline">Cámara</span>
+                      <span className="sm:hidden">Foto</span>
                     </button>
                   </div>
 
@@ -368,7 +372,7 @@ export default function NewCattlePage() {
                           alt="Vista previa"
                           width={800}
                           height={400}
-                          className="w-full h-48 object-cover rounded-lg"
+                          className="w-full h-64 sm:h-48 object-cover rounded-lg"
                           style={{ objectFit: 'cover' }}
                           unoptimized={true}
                         />
@@ -436,21 +440,21 @@ export default function NewCattlePage() {
             </div>
 
             {/* Botones de acción */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-              <Link 
-                href="/cattle" 
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
+            <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-gray-200">
+              <Link
+                href="/cattle"
+                className="w-full sm:w-auto px-6 py-4 sm:px-4 sm:py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium text-center min-h-[48px]"
               >
                 Cancelar
               </Link>
               <button
                 type="submit"
                 disabled={isUploading}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                className="w-full sm:w-auto px-6 py-4 sm:px-4 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl min-h-[48px]"
               >
                 {isUploading ? (
-                  <span className="inline-flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <span className="inline-flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
