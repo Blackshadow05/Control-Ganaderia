@@ -38,12 +38,20 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
     <div className="mt-8 pt-6 border-t border-gray-200">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-900">Historial de Aplicaciones</h2>
-        <Link
-          href={`/cattle/${cattleId}/application/new`}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-        >
-          Nueva Aplicación
-        </Link>
+        <div className="flex space-x-3">
+          <Link
+            href="/cattle"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer"
+          >
+            Aplicar a varios animales
+          </Link>
+          <Link
+            href={`/cattle/${cattleId}/application/new`}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+          >
+            Nueva Aplicación
+          </Link>
+        </div>
       </div>
 
       {applications.length > 0 ? (

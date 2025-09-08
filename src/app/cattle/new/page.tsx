@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { createCattle } from '../actions';
+import { useRouter } from 'next/navigation';
+import { createCattleWithResult } from '../actions';
 import { supabase, Finca } from '@/lib/supabase';
 import { uploadImage, compressImage } from '@/lib/imageUtils';
 import Image from 'next/image';
 
 
 export default function NewCattlePage() {
+  const router = useRouter();
   const [pesoEntrada, setPesoEntrada] = useState('');
   const [precioKg, setPrecioKg] = useState('');
   const [precioCompra, setPrecioCompra] = useState('');
@@ -18,6 +20,9 @@ export default function NewCattlePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationType, setNotificationType] = useState<'success' | 'error'>('success');
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   // Calculate Precio_compra when peso_entrada or precio_kg changes
   useEffect(() => {
@@ -88,7 +93,10 @@ export default function NewCattlePage() {
         if (imageToUpload) {
           imageUrl = await uploadImage(imageToUpload);
           if (!imageUrl) {
-            alert('Error al subir la imagen. Inténtalo de nuevo.');
+            setNotificationMessage('Error al subir la imagen. Inténtalo de nuevo.');
+            setNotificationType('error');
+            setShowNotification(true);
+            setTimeout(() => setShowNotification(false), 5000);
             setIsUploading(false);
             return;
           }
@@ -117,19 +125,37 @@ export default function NewCattlePage() {
 
       // Submit form
       try {
-        await createCattle(formData);
-        // If we reach here, the form was submitted successfully
-        // The redirect will happen in the server action
+        const result = await createCattleWithResult(formData);
+        
+        if (result.success) {
+          // Show success message before redirect
+          setNotificationMessage('¡Ganado registrado exitosamente! Redirigiendo...');
+          setNotificationType('success');
+          setShowNotification(true);
+          
+          // Hide notification and then redirect after 2 seconds
+          setTimeout(() => {
+            setShowNotification(false);
+            router.push('/cattle');
+          }, 2000);
+        } else {
+          throw new Error(result.message || 'Error desconocido al guardar');
+        }
       } catch (error) {
         console.error('Error:', error);
-        // Only show alert for critical errors, not for successful saves with redirect issues
-        if (error instanceof Error && !error.message.includes('NEXT_REDIRECT')) {
-          alert('Error al guardar el ganado. Inténtalo de nuevo.');
-        }
+        setNotificationMessage('Error al guardar el ganado. Inténtalo de nuevo.');
+        setNotificationType('error');
+        setShowNotification(true);
+        // Hide notification after 5 seconds
+        setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al guardar el ganado. Inténtalo de nuevo.');
+      setNotificationMessage('Error al guardar el ganado. Inténtalo de nuevo.');
+      setNotificationType('error');
+      setShowNotification(true);
+      // Hide notification after 5 seconds
+      setTimeout(() => setShowNotification(false), 5000);
     } finally {
       setIsUploading(false);
     }
@@ -137,6 +163,60 @@ export default function NewCattlePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
+      {/* Notification Component */}
+      {showNotification && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+          <div className={`border rounded-lg p-4 shadow-lg max-w-md ${
+            notificationType === 'success'
+              ? 'bg-green-50 border-green-200'
+              : 'bg-red-50 border-red-200'
+          }`}>
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                {notificationType === 'success' ? (
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </div>
+              <div className="ml-3">
+                <h3 className={`text-sm font-medium ${
+                  notificationType === 'success' ? 'text-green-800' : 'text-red-800'
+                }`}>
+                  {notificationType === 'success' ? '¡Éxito!' : 'Error'}
+                </h3>
+                <div className={`mt-1 text-sm ${
+                  notificationType === 'success' ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {notificationMessage}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS Animation */}
+      <style jsx>{`
+        @keyframes slide-in-right {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
+        }
+      `}</style>
+
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8">
         <div className="mb-6 sm:mb-8">
           <Link href="/cattle" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 sm:mb-6 transition-colors duration-200">

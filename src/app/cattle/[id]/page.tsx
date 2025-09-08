@@ -3,28 +3,14 @@ import { notFound, redirect } from 'next/navigation';
 import { supabase, type Ganado, type AplicacionesAnimalView } from '@/lib/supabase';
 import ApplicationsSection from '@/components/ApplicationsSection';
 import CattleImage from '@/components/CattleImage';
-import DeleteCattleButton from '@/components/DeleteCattleButton';
+import DeleteCattleButtonWithNotification from '@/components/DeleteCattleButtonWithNotification';
+import MarkAsSoldButton from '@/components/MarkAsSoldButton';
 import { formatDateDisplay } from '@/lib/formatDateLocal';
 
 // Force dynamic rendering - NO CACHE
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Server action to delete cattle
-async function deleteCattle(id: number) {
-  'use server';
-  
-  const { error } = await supabase
-    .from('Ganado')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    throw new Error('Error al eliminar el ganado: ' + error.message);
-  }
-
-  redirect('/cattle');
-}
 
 // Fetch cattle data from Supabase
 async function getCattleById(id: number): Promise<Ganado | null> {
@@ -82,13 +68,20 @@ export default async function CattleDetailPage({ params }: PageProps) {
             <h1 className="text-3xl font-bold text-gray-900">{cattle.id_animal}</h1>
             <p className="text-gray-600 mt-1">Detalles del ganado</p>
           </div>
-          <div className="ml-4 flex space-x-3">
-            <Link href={`/cattle/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-              Editar Ganado
+          <div className="ml-4 flex flex-wrap gap-2 sm:space-x-3 sm:flex-nowrap">
+            <Link href={`/cattle/${id}/edit`} className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
+              Editar
             </Link>
-            <form action={deleteCattle.bind(null, parseInt(id))}>
-              <DeleteCattleButton />
-            </form>
+            {!cattle.fecha_venta && (
+              <MarkAsSoldButton
+                cattleId={parseInt(id)}
+                cattleName={cattle.id_animal}
+              />
+            )}
+            <DeleteCattleButtonWithNotification
+              cattleId={parseInt(id)}
+              cattleName={cattle.id_animal}
+            />
           </div>
         </div>
       </div>
@@ -132,12 +125,12 @@ export default async function CattleDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Precio por Kg</dt>
-                <dd className="text-sm text-gray-900">${cattle.precio_kg}</dd>
+                <dd className="text-sm text-gray-900">₡{cattle.precio_kg}</dd>
               </div>
               {cattle.Precio_compra && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio de Compra Total</dt>
-                  <dd className="text-sm text-gray-900">₡{cattle.Precio_compra.toFixed(2)}</dd>
+                  <dd className="text-sm text-green-600 font-semibold">₡{cattle.Precio_compra.toFixed(2)}</dd>
                 </div>
               )}
             </dl>
@@ -158,12 +151,12 @@ export default async function CattleDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Fecha de Compra</dt>
-                <dd className="text-sm text-gray-900">{formatDateDisplay(cattle.fecha_compra)}</dd>
+                <dd className="text-sm text-green-600 font-semibold">{formatDateDisplay(cattle.fecha_compra)}</dd>
               </div>
               {cattle.fecha_venta && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Fecha de Venta</dt>
-                  <dd className="text-sm text-gray-900">{formatDateDisplay(cattle.fecha_venta)}</dd>
+                  <dd className="text-sm text-red-600 font-semibold">{formatDateDisplay(cattle.fecha_venta)}</dd>
                 </div>
               )}
               {cattle.peso_salida && (
@@ -175,13 +168,13 @@ export default async function CattleDetailPage({ params }: PageProps) {
               {cattle.precio_kg_venta && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio Venta/kg</dt>
-                  <dd className="text-sm text-gray-900">${cattle.precio_kg_venta}</dd>
+                  <dd className="text-sm text-red-600 font-semibold">₡{cattle.precio_kg_venta}</dd>
                 </div>
               )}
               {cattle.Precio_venta && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio de Venta Total</dt>
-                  <dd className="text-sm text-gray-900">₡{cattle.Precio_venta.toFixed(2)}</dd>
+                  <dd className="text-sm text-red-600 font-semibold">₡{cattle.Precio_venta.toFixed(2)}</dd>
                 </div>
               )}
             </dl>
