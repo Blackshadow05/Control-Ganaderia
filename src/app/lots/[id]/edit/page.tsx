@@ -169,7 +169,6 @@ export default async function LotEditPage({ params }: PageProps) {
           <div className="flex justify-between">
             <DeleteLotButton
               lotId={lot.id}
-              onDelete={deleteLot.bind(null, lot.id)}
             />
 
             <div className="flex space-x-4">

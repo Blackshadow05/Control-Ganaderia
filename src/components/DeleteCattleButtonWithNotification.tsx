@@ -125,13 +125,11 @@ export default function DeleteCattleButtonWithNotification({ cattleId, cattleNam
       {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onConfirm={handleConfirmDelete}
         title="¿Eliminar este ganado?"
         message={`¿Estás seguro de que quieres eliminar el ganado ${cattleName}? Esta acción no se puede deshacer.`}
-        confirmText="Sí, eliminar"
-        cancelText="Cancelar"
-        type="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowModal(false)}
+        isLoading={isDeleting}
       />
     </>
   )

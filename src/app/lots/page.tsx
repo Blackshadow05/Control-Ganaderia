@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import type { Finca } from '@/lib/supabase';
+import DeleteLotButton from '@/components/DeleteLotButton';
 
 export async function deleteLot(formData: FormData) {
   'use server';
@@ -73,15 +74,7 @@ export default async function LotsPage() {
               <Link href={`/lots/${lot.id}/edit`} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                 Editar
               </Link>
-              <form action={deleteLot} className="inline">
-                <input type="hidden" name="id" value={lot.id} />
-                <button
-                  type="submit"
-                  className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                >
-                  Eliminar
-                </button>
-              </form>
+              <DeleteLotButton lotId={lot.id} />
             </div>
           </div>
         ))}
