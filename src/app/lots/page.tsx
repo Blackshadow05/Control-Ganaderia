@@ -1,8 +1,27 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import type { Finca } from '@/lib/supabase';
+
+export async function deleteLot(formData: FormData) {
+  'use server';
+
+  const id = formData.get('id') as string;
+  
+  const { error } = await supabase
+    .from('Finca')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting lot:', error);
+    // Podemos redirigir a una página de error si es necesario
+  }
+  
+  revalidatePath('/lots');
+}
 
 async function getLots(): Promise<Finca[]> {
   const { data, error } = await supabase
@@ -54,17 +73,8 @@ export default async function LotsPage() {
               <Link href={`/lots/${lot.id}/edit`} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                 Editar
               </Link>
-              <form action={async () => {
-                'use server';
-                const { error } = await supabase
-                  .from('Finca')
-                  .delete()
-                  .eq('id', lot.id);
-
-                if (error) {
-                  console.error('Error deleting lot:', error);
-                }
-              }} className="inline">
+              <form action={deleteLot} className="inline">
+                <input type="hidden" name="id" value={lot.id} />
                 <button
                   type="submit"
                   className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
