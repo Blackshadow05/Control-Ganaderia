@@ -56,7 +56,7 @@ export default function DeleteApplicationModal({
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2 text-center">¿Eliminar aplicación?</h3>
           <p className="text-sm text-gray-600 mb-6 text-center">
-            ¿Estás seguro de que deseas eliminar la aplicación "{applicationName}"? Esta acción no se puede deshacer.
+            ¿Estás seguro de que deseas eliminar la aplicación {'"'}{applicationName}{'"'}? Esta acción no se puede deshacer.
           </p>
           <div className="flex justify-end space-x-3">
             <button

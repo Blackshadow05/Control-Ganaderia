@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, type AplicacionesAnimalView } from '@/lib/supabase';
+import { type AplicacionesAnimalView } from '@/lib/supabase';
 import { formatApplicationDate } from '@/lib/applicationDateUtils';
 import DeleteApplicationModal from './DeleteApplicationModal';
 
@@ -181,7 +181,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
         <div className="text-center py-8">
           <div className="text-4xl mb-2">💉</div>
           <p className="text-gray-600">No hay aplicaciones registradas para este animal</p>
-          <p className="text-sm text-gray-500 mt-2">Haz click en "Nueva Aplicación" para comenzar</p>
+          <p className="text-sm text-gray-500 mt-2">Haz click en {'"'}Nueva Aplicación{'"'} para comenzar</p>
         </div>
       )}
     </div>
