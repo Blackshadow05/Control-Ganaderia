@@ -31,7 +31,6 @@ export default function MarkAsSoldButton({ cattleId, cattleName, onSuccess }: Ma
 
       <MarkAsSoldModal
         cattleId={cattleId}
-        cattleName={cattleName}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleSuccess}
