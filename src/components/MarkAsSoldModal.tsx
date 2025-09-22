@@ -6,13 +6,12 @@ import { getLocalDate } from '@/lib/dateUtils';
 
 interface MarkAsSoldModalProps {
   cattleId: number;
-  cattleName: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function MarkAsSoldModal({ cattleId, cattleName, isOpen, onClose, onSuccess }: MarkAsSoldModalProps) {
+export default function MarkAsSoldModal({ cattleId, isOpen, onClose, onSuccess }: MarkAsSoldModalProps) {
   const [formData, setFormData] = useState({
     peso_salida: '',
     precio_kg_venta: '',

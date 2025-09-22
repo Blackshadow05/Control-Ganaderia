@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { aplicacionesAnimalSchema, type AplicacionesAnimalForm } from '@/lib/validations'
 import { supabase, type Ganado } from '@/lib/supabase'
-import { Button } from '@/components/ui/Button'
 import { getLocalDate, getMaxDate, isFutureDate } from '@/lib/dateUtils'
 
 interface MultiAnimalApplicationFormProps {
