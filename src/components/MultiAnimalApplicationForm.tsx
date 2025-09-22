@@ -19,8 +19,6 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
   const [productos, setProductos] = useState<{id: number, nombre: string}[]>([])
   const [loadingProductos, setLoadingProductos] = useState(true)
   const [fechaAplicacion, setFechaAplicacion] = useState<string>(getLocalDate())
-  const [successCount, setSuccessCount] = useState(0)
-  const [errorCount, setErrorCount] = useState(0)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showError, setShowError] = useState(false)
   const [resultMessage, setResultMessage] = useState('')
@@ -91,8 +89,6 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
     }
 
     setIsSubmitting(true)
-    setSuccessCount(0)
-    setErrorCount(0)
 
     try {
       // Find the selected product to get its ID
@@ -127,9 +123,6 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
       // Count successes and failures
       const successful = results.filter(result => result.status === 'fulfilled')
       const failed = results.filter(result => result.status === 'rejected')
-      
-      setSuccessCount(successful.length)
-      setErrorCount(failed.length)
 
       if (failed.length > 0) {
         const errorMessages = failed.map(result =>
@@ -138,7 +131,6 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
         setResultMessage(`Aplicación completada con errores:\n✓ Exitosas: ${successful.length}\n✗ Fallidas: ${failed.length}\n\nErrores:\n${errorMessages}`)
         setShowError(true)
       } else {
-        const successIds = successful.map(s => s.status === 'fulfilled' ? s.value : '').filter(Boolean).join(', ')
         const animalNames = selectedAnimals.map(a => a.id_animal).join(', ')
         setResultMessage(`¡Aplicación exitosa! ${data.Producto} aplicado a ${successful.length} animales (${animalNames})`)
         setShowSuccess(true)

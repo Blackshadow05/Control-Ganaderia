@@ -140,7 +140,7 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
         Id_producto: selectedProduct?.id || null,  // Product ID for trigger
       };
 
-      const { error, data: insertedData } = await supabase
+      const { error } = await supabase
         .from('AplicacionesAnimal')
         .insert(insertData)
         .select()

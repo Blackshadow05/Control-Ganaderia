@@ -18,9 +18,6 @@ export function formatApplicationDate(dateString: string): string {
   const month = parseInt(parts[1], 10);
   const day = parseInt(parts[2], 10);
   
-  // Create date without timezone conversion (using noon to avoid any edge cases)
-  const date = new Date(year, month - 1, day, 12, 0, 0, 0);
-  
   // Format as DD/MM/YYYY for display
   const dayStr = String(day).padStart(2, '0');
   const monthStr = String(month).padStart(2, '0');
