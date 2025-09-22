@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, type AplicacionesAnimalView } from '@/lib/supabase';
 import { formatApplicationDate } from '@/lib/applicationDateUtils';
+import DeleteApplicationModal from './DeleteApplicationModal';
 
 interface ApplicationsSectionProps {
   applications: AplicacionesAnimalView[];
@@ -12,26 +14,23 @@ interface ApplicationsSectionProps {
 
 export default function ApplicationsSection({ applications, cattleId }: ApplicationsSectionProps) {
   const router = useRouter();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [appToDelete, setAppToDelete] = useState<AplicacionesAnimalView | null>(null);
 
-  const handleDeleteApplication = async (applicationId: number) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta aplicación?')) {
-      try {
-        const { error } = await supabase
-          .from('AplicacionesAnimal')
-          .delete()
-          .eq('id', applicationId);
+  const handleOpenDeleteModal = (app: AplicacionesAnimalView) => {
+    setAppToDelete(app);
+    setIsDeleteModalOpen(true);
+  };
 
-        if (error) {
-          alert('Error al eliminar la aplicación: ' + error.message);
-        } else {
-          alert('Aplicación eliminada exitosamente');
-          router.refresh(); // Refresh the page to update the list
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Error desconocido';
-        alert('Error al eliminar la aplicación: ' + message);
-      }
-    }
+  const handleDeleteSuccess = () => {
+    router.refresh();
+    setIsDeleteModalOpen(false);
+    setAppToDelete(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setAppToDelete(null);
   };
 
   return (
@@ -107,7 +106,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
                         Editar
                       </Link>
                       <button
-                        onClick={() => handleDeleteApplication(app.id)}
+                        onClick={() => handleOpenDeleteModal(app)}
                         className="text-red-600 hover:text-red-900"
                       >
                         Eliminar
@@ -158,7 +157,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
                     Editar
                   </Link>
                   <button
-                    onClick={() => handleDeleteApplication(app.id)}
+                    onClick={() => handleOpenDeleteModal(app)}
                     className="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
                   >
                     Eliminar
@@ -167,12 +166,22 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
               </div>
             ))}
           </div>
+
+          {appToDelete && (
+            <DeleteApplicationModal
+              applicationId={appToDelete.id}
+              applicationName={appToDelete.Producto || ''}
+              isOpen={isDeleteModalOpen}
+              onClose={handleCloseDeleteModal}
+              onDelete={handleDeleteSuccess}
+            />
+          )}
         </>
       ) : (
         <div className="text-center py-8">
           <div className="text-4xl mb-2">💉</div>
           <p className="text-gray-600">No hay aplicaciones registradas para este animal</p>
-          <p className="text-sm text-gray-500 mt-2">Haz click en &quot;Nueva Aplicación&quot; para comenzar</p>
+          <p className="text-sm text-gray-500 mt-2">Haz click en "Nueva Aplicación" para comenzar</p>
         </div>
       )}
     </div>

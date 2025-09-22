@@ -7,6 +7,15 @@ import DeleteCattleButtonWithNotification from '@/components/DeleteCattleButtonW
 import MarkAsSoldButton from '@/components/MarkAsSoldButton';
 import { formatDateDisplay } from '@/lib/formatDateLocal';
 
+function formatCurrency(amount: number): string {
+  if (amount >= 1000000) {
+    return `${(amount / 1000000).toFixed(1).replace('.', ',')} millones`;
+  } else if (amount >= 1000) {
+    return `${(amount / 1000).toFixed(0)} mil`;
+  }
+  return amount.toFixed(0);
+}
+
 // Force dynamic rendering - NO CACHE
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -130,7 +139,7 @@ export default async function CattleDetailPage({ params }: PageProps) {
               {cattle.Precio_compra && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio de Compra Total</dt>
-                  <dd className="text-sm text-green-600 font-semibold">₡{cattle.Precio_compra.toFixed(2)}</dd>
+                  <dd className="text-sm text-green-600 font-semibold">₡{formatCurrency(cattle.Precio_compra)}</dd>
                 </div>
               )}
             </dl>
@@ -174,7 +183,7 @@ export default async function CattleDetailPage({ params }: PageProps) {
               {cattle.Precio_venta && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio de Venta Total</dt>
-                  <dd className="text-sm text-red-600 font-semibold">₡{cattle.Precio_venta.toFixed(2)}</dd>
+                  <dd className="text-sm text-red-600 font-semibold">₡{formatCurrency(cattle.Precio_venta)}</dd>
                 </div>
               )}
             </dl>
@@ -195,14 +204,72 @@ export default async function CattleDetailPage({ params }: PageProps) {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-green-800">
-                  ₡{applications
+                  ₡{formatCurrency(applications
                     .filter(app => app.Costo)
-                    .reduce((total, app) => total + (app.Costo || 0), 0)
-                    .toFixed(2)}
+                    .reduce((total, app) => total + (app.Costo || 0), 0))}
                 </div>
                 <p className="text-sm text-green-600">Costo total acumulado</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Profit Summary */}
+        {cattle.fecha_venta && cattle.Precio_venta && (
+          <div className="mt-6 p-4 rounded-lg border">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Resumen de Ganancia</h3>
+                <p className="text-sm text-gray-600">
+                  Ganancia neta del animal
+                </p>
+              </div>
+              <div className="text-right">
+                {(() => {
+                  const totalAppCosts = applications
+                    .filter(app => app.Costo)
+                    .reduce((total, app) => total + (app.Costo || 0), 0);
+                  const totalCost = (cattle.Precio_compra || 0) + totalAppCosts;
+                  const profit = cattle.Precio_venta - totalCost;
+                  const isProfitable = profit > 0;
+                  return (
+                    <div className={`text-2xl font-bold ${isProfitable ? 'text-green-600' : 'text-red-600'}`}>
+                      ₡{formatCurrency(profit)}
+                    </div>
+                  );
+                })()}
+                <p className="text-sm text-gray-600">Ganancia total</p>
+              </div>
+            </div>
+            {(() => {
+              const totalAppCosts = applications
+                .filter(app => app.Costo)
+                .reduce((total, app) => total + (app.Costo || 0), 0);
+              const totalCost = (cattle.Precio_compra || 0) + totalAppCosts;
+              const profit = cattle.Precio_venta - totalCost;
+              return (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Precio de Compra:</p>
+                  <p className="font-semibold">₡{formatCurrency(cattle.Precio_compra || 0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Costos de Aplicaciones:</p>
+                      <p className="font-semibold">₡{formatCurrency(totalAppCosts)}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-500 font-medium">Costo Total:</p>
+                      <p className="font-bold text-gray-900">₡{formatCurrency(totalCost)}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-500 font-medium">Precio de Venta:</p>
+                      <p className="font-bold text-red-600">₡{formatCurrency(cattle.Precio_venta)}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
