@@ -2,10 +2,15 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { supabase, type AplicacionesAnimal } from '@/lib/supabase';
+import {
+  getApplicationForAnimalById,
+  updateApplicationForAnimal,
+  getApplications,
+  type AplicacionesAnimalView
+} from '@/lib/appwrite';
 import { aplicacionesAnimalSchema } from '@/lib/validations';
 
-async function updateApplication(applicationId: number, formData: FormData) {
+async function updateApplication(applicationId: string, formData: FormData) {
   'use server';
 
   const data = {
@@ -21,57 +26,36 @@ async function updateApplication(applicationId: number, formData: FormData) {
     throw new Error('Datos inválidos: ' + validation.error.issues.map((issue: { message: string }) => issue.message).join(', '));
   }
 
-  // Update in Supabase
-  const { error } = await supabase
-    .from('AplicacionesAnimal')
-    .update(validation.data)
-    .eq('id', applicationId);
-
-  if (error) {
-    throw new Error('Error al actualizar la aplicación: ' + error.message);
+  // Update in Appwrite
+  try {
+    await updateApplicationForAnimal(applicationId, validation.data);
+  } catch (error) {
+    throw new Error('Error al actualizar la aplicación: ' + (error as Error).message);
   }
 
   // Get the animal ID to redirect back
-  const { data: appData } = await supabase
-    .from('AplicacionesAnimal')
-    .select('Id_animal')
-    .eq('id', applicationId)
-    .single();
+  const appData = await getApplicationForAnimalById(applicationId);
 
   redirect(`/cattle/${appData?.Id_animal}`);
 }
 
-// Fetch application data from Supabase
-async function getApplicationById(applicationId: number): Promise<AplicacionesAnimal | null> {
-  const { data, error } = await supabase
-    .from('AplicacionesAnimal')
-    .select('*')
-    .eq('id', applicationId)
-    .single();
-
-  if (error) {
-    console.error('Error fetching application:', error);
-    return null;
-  }
-
-  return data;
+// Fetch application data from Appwrite
+async function getApplicationById(applicationId: string): Promise<AplicacionesAnimalView | null> {
+  return await getApplicationForAnimalById(applicationId);
 }
 
 // Fetch products from Aplicaciones table
 async function getProductos(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('Aplicaciones')
-    .select('Nombre')
-    .not('Nombre', 'is', null);
-
-  if (error) {
+  try {
+    const data = await getApplications();
+    
+    // Get unique product names, filtering out null values
+    const uniqueProductos = [...new Set(data.map(item => item.Nombre).filter((name): name is string => Boolean(name)))];
+    return uniqueProductos;
+  } catch (error) {
     console.error('Error fetching products:', error);
     return [];
   }
-
-  // Get unique product names
-  const uniqueProductos = [...new Set(data.map(item => item.Nombre).filter(Boolean))];
-  return uniqueProductos;
 }
 
 interface PageProps {
@@ -80,7 +64,7 @@ interface PageProps {
 
 export default async function EditApplicationPage({ params }: PageProps) {
   const { id, applicationId } = await params;
-  const application = await getApplicationById(parseInt(applicationId));
+  const application = await getApplicationById(applicationId);
   const productos = await getProductos();
 
   if (!application) {
@@ -100,7 +84,7 @@ export default async function EditApplicationPage({ params }: PageProps) {
       <div className="bg-white shadow rounded-lg p-6">
         <form action={async (formData: FormData) => {
           'use server';
-          await updateApplication(application.id, formData);
+          await updateApplication(applicationId, formData);
         }} className="space-y-6">
           <div>
             <label htmlFor="Producto" className="block text-sm font-medium text-gray-700">

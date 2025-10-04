@@ -4,7 +4,7 @@ import { useState } from 'react';
 import MarkAsSoldModal from './MarkAsSoldModal';
 
 interface MarkAsSoldButtonProps {
-  cattleId: number;
+  cattleId: string;
   cattleName: string;
   onSuccess?: () => void;
 }

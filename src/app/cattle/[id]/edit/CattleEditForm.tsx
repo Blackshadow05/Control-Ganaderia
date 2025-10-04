@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { type Ganado, type Finca } from '@/lib/supabase';
+import { type Ganado, type Finca } from '@/lib/appwrite';
 import { formatDateDisplay } from '@/lib/formatDateLocal';
 
 interface CattleEditFormProps {
@@ -12,6 +12,10 @@ interface CattleEditFormProps {
 }
 
 export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditFormProps) {
+  const [farmId, setFarmId] = useState('');
+  const [pesoEntrada, setPesoEntrada] = useState('');
+  const [precioKg, setPrecioKg] = useState('');
+  const [precioCompra, setPrecioCompra] = useState('');
   const [pesoSalida, setPesoSalida] = useState('');
   const [precioKgVenta, setPrecioKgVenta] = useState('');
   const [precioVenta, setPrecioVenta] = useState('');
@@ -20,6 +24,16 @@ export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditF
   console.log('Cattle data:', cattle);
   console.log('Fincas disponibles:', fincas);
   console.log('farm_id actual:', cattle.farm_id);
+
+  // Calculate Precio_compra when peso_entrada or precio_kg changes
+  useEffect(() => {
+    if (pesoEntrada && precioKg) {
+      const calculated = parseFloat(pesoEntrada) * parseFloat(precioKg);
+      setPrecioCompra(calculated.toFixed(2));
+    } else {
+      setPrecioCompra('');
+    }
+  }, [pesoEntrada, precioKg]);
 
   // Calculate Precio_venta when peso_salida or precio_kg_venta changes
   useEffect(() => {
@@ -33,6 +47,18 @@ export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditF
 
   // Initialize values from cattle data
   useEffect(() => {
+    if (cattle.farm_id) {
+      setFarmId(cattle.farm_id.toString());
+    }
+    if (cattle.peso_entrada) {
+      setPesoEntrada(cattle.peso_entrada.toString());
+    }
+    if (cattle.precio_kg) {
+      setPrecioKg(cattle.precio_kg.toString());
+    }
+    if (cattle.Precio_compra) {
+      setPrecioCompra(cattle.Precio_compra.toString());
+    }
     if (cattle.peso_salida) {
       setPesoSalida(cattle.peso_salida.toString());
     }
@@ -76,12 +102,13 @@ export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditF
             id="farm_id"
             name="farm_id"
             required
-            defaultValue={cattle.farm_id?.toString() || ''}
+            value={farmId}
+            onChange={(e) => setFarmId(e.target.value)}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Selecciona una finca y apartado</option>
             {fincas.map((finca) => (
-              <option key={finca.id} value={finca.id}>
+              <option key={finca.$id} value={finca.$id}>
                 {`${finca["Nombre-finca"] || ''} - ${finca["Nombre_apartado"] || ''}`}
               </option>
             ))}
@@ -97,7 +124,8 @@ export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditF
             id="peso_entrada"
             name="peso_entrada"
             step="0.01"
-            defaultValue={cattle.peso_entrada}
+            value={pesoEntrada}
+            onChange={(e) => setPesoEntrada(e.target.value)}
             required
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
@@ -112,7 +140,8 @@ export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditF
             id="precio_kg"
             name="precio_kg"
             step="0.01"
-            defaultValue={cattle.precio_kg}
+            value={precioKg}
+            onChange={(e) => setPrecioKg(e.target.value)}
             required
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
@@ -127,9 +156,12 @@ export default function CattleEditForm({ cattle, fincas, onSubmit }: CattleEditF
             id="Precio_compra"
             name="Precio_compra"
             step="0.01"
-            defaultValue={cattle.Precio_compra || ''}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={precioCompra}
+            readOnly
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Calculado automáticamente"
           />
+          <p className="mt-1 text-sm text-gray-500">Calculado como: Peso Entrada × Precio/kg Compra</p>
         </div>
 
         <div>

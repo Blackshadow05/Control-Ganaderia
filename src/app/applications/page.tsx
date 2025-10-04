@@ -1,23 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
-import type { Aplicaciones } from '@/lib/supabase';
+import { getApplications, type Aplicaciones } from '@/lib/appwrite';
 import DeleteApplicationButton from '@/components/DeleteApplicationButton';
 
-async function getApplications(): Promise<Aplicaciones[]> {
-  const { data, error } = await supabase
-    .from('Aplicaciones')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching applications:', error);
-    return [];
-  }
-
-  return data || [];
-}
 
 export default async function ApplicationsPage() {
   const applications = await getApplications();
@@ -58,7 +44,7 @@ export default async function ApplicationsPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {applications.map((app) => (
-              <tr key={app.id} className="hover:bg-gray-50">
+              <tr key={app.$id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {app.Nombre}
                 </td>
@@ -71,16 +57,16 @@ export default async function ApplicationsPage() {
                   {app.Descripcion || 'Sin descripción'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(app.created_at).toLocaleDateString('es-ES')}
+                  {new Date(app.created_at || app.$createdAt).toLocaleDateString('es-ES')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                   <Link
-                    href={`/applications/${app.id}/edit`}
+                    href={`/applications/${app.$id}/edit`}
                     className="text-blue-600 hover:text-blue-900 transition-colors"
                   >
                     Editar
                   </Link>
-                  <DeleteApplicationButton applicationId={app.id} />
+                  <DeleteApplicationButton applicationId={app.$id} />
                 </td>
               </tr>
             ))}
@@ -91,7 +77,7 @@ export default async function ApplicationsPage() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
         {applications.map((app) => (
-          <div key={app.id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div key={app.$id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">{app.Nombre}</h3>
@@ -100,7 +86,7 @@ export default async function ApplicationsPage() {
                 </span>
               </div>
               <div className="text-sm text-gray-500">
-                {new Date(app.created_at).toLocaleDateString('es-ES')}
+                {new Date(app.created_at || app.$createdAt).toLocaleDateString('es-ES')}
               </div>
             </div>
             
@@ -112,12 +98,12 @@ export default async function ApplicationsPage() {
             
             <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
               <Link
-                href={`/applications/${app.id}/edit`}
+                href={`/applications/${app.$id}/edit`}
                 className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
               >
                 Editar
               </Link>
-              <DeleteApplicationButton applicationId={app.id} />
+              <DeleteApplicationButton applicationId={app.$id} />
             </div>
           </div>
         ))}

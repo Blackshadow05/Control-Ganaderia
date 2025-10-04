@@ -6,7 +6,7 @@ import { deleteCattleWithResult } from '@/app/cattle/actions'
 import ConfirmationModal from './ConfirmationModal'
 
 interface DeleteCattleButtonWithNotificationProps {
-  cattleId: number
+  cattleId: string
   cattleName: string
 }
 

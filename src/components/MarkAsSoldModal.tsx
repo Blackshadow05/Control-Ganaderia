@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { updateCattle, getCattleById } from '@/lib/appwrite';
 import { getLocalDate } from '@/lib/dateUtils';
 
 interface MarkAsSoldModalProps {
-  cattleId: number;
+  cattleId: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -37,19 +37,31 @@ export default function MarkAsSoldModal({ cattleId, isOpen, onClose, onSuccess }
     setError(null);
 
     try {
-      const { error } = await supabase
-        .from('Ganado')
-        .update({
-          peso_salida: parseFloat(formData.peso_salida),
-          precio_kg_venta: parseFloat(formData.precio_kg_venta),
-          Precio_venta: parseFloat(formData.Precio_venta),
-          fecha_venta: formData.fecha_venta
-        })
-        .eq('id', cattleId);
-
-      if (error) {
-        throw error;
+      // First get the current cattle data to preserve existing fields
+      const currentCattle = await getCattleById(cattleId);
+      
+      if (!currentCattle) {
+        throw new Error('No se encontró el animal');
       }
+
+      // Update with new sale data while preserving existing data
+      await updateCattle(cattleId, {
+        // Preserve existing data
+        id_animal: currentCattle.id_animal,
+        peso_entrada: currentCattle.peso_entrada,
+        precio_kg: currentCattle.precio_kg,
+        Precio_compra: currentCattle.Precio_compra,
+        farm_nombre: currentCattle.farm_nombre,
+        farm_id: currentCattle.farm_id,
+        fecha_compra: currentCattle.fecha_compra,
+        Imagen: currentCattle.Imagen,
+        
+        // Update with new sale data
+        peso_salida: parseFloat(formData.peso_salida).toFixed(2),
+        precio_kg_venta: parseFloat(formData.precio_kg_venta),
+        Precio_venta: parseFloat(formData.Precio_venta).toFixed(2),
+        fecha_venta: formData.fecha_venta
+      });
 
       onSuccess();
       onClose();

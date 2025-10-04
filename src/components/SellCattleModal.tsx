@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase, type Ganado } from '@/lib/supabase';
+import { getCattle, updateCattle, getCattleById, type Ganado } from '@/lib/appwrite';
 import { getLocalDate } from '@/lib/dateUtils';
 
 interface SellCattleModalProps {
@@ -31,19 +31,14 @@ export default function SellCattleModal({ isOpen, onClose }: SellCattleModalProp
   }, [isOpen, step]);
 
   const fetchActiveCattle = async () => {
-    const { data, error } = await supabase
-      .from('Ganado')
-      .select('*')
-      .is('fecha_venta', null)
-      .order('fecha_compra', { ascending: false });
-
-    if (error) {
+    try {
+      const cattle = await getCattle();
+      const activeCattle = cattle.filter(c => !c.fecha_venta);
+      setActiveCattle(activeCattle);
+    } catch (error) {
       console.error('Error fetching active cattle:', error);
       setError('Error al cargar animales activos');
-      return;
     }
-
-    setActiveCattle(data || []);
   };
 
   // Calculate total price automatically
@@ -81,19 +76,24 @@ export default function SellCattleModal({ isOpen, onClose }: SellCattleModalProp
     setError(null);
 
     try {
-      const { error } = await supabase
-        .from('Ganado')
-        .update({
-          peso_salida: parseFloat(formData.peso_salida),
-          precio_kg_venta: parseFloat(formData.precio_kg_venta),
-          Precio_venta: parseFloat(formData.Precio_venta),
-          fecha_venta: formData.fecha_venta
-        })
-        .eq('id', selectedCattle.id);
-
-      if (error) {
-        throw error;
-      }
+      // Update with new sale data while preserving existing data
+      await updateCattle(selectedCattle.$id, {
+        // Preserve existing data
+        id_animal: selectedCattle.id_animal,
+        peso_entrada: selectedCattle.peso_entrada,
+        precio_kg: selectedCattle.precio_kg,
+        Precio_compra: selectedCattle.Precio_compra,
+        farm_nombre: selectedCattle.farm_nombre,
+        farm_id: selectedCattle.farm_id,
+        fecha_compra: selectedCattle.fecha_compra,
+        Imagen: selectedCattle.Imagen,
+        
+        // Update with new sale data
+        peso_salida: parseFloat(formData.peso_salida).toFixed(2),
+        precio_kg_venta: parseFloat(formData.precio_kg_venta),
+        Precio_venta: parseFloat(formData.Precio_venta).toFixed(2),
+        fecha_venta: formData.fecha_venta
+      });
 
       onClose();
       // Reset
@@ -173,7 +173,7 @@ export default function SellCattleModal({ isOpen, onClose }: SellCattleModalProp
                 {filteredCattle.length > 0 ? (
                   filteredCattle.map((cattle) => (
                     <div
-                      key={cattle.id}
+                      key={cattle.$id}
                       onClick={() => handleSelectCattle(cattle)}
                       className="p-4 bg-gray-50 rounded-xl hover:bg-blue-50 cursor-pointer transition-colors border border-transparent hover:border-blue-200"
                     >

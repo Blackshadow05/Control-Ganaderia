@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { aplicacionesAnimalSchema, type AplicacionesAnimalForm } from '@/lib/validations'
-import { supabase, type Ganado } from '@/lib/supabase'
+import { getApplications, createApplicationForAnimal, type Ganado } from '@/lib/appwrite'
 import { getLocalDate, getMaxDate, isFutureDate } from '@/lib/dateUtils'
 
 interface MultiAnimalApplicationFormProps {
@@ -15,7 +15,7 @@ interface MultiAnimalApplicationFormProps {
 export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAnimalApplicationFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [productos, setProductos] = useState<{id: number, nombre: string}[]>([])
+  const [productos, setProductos] = useState<{id: string, nombre: string}[]>([])
   const [loadingProductos, setLoadingProductos] = useState(true)
   const [fechaAplicacion, setFechaAplicacion] = useState<string>(getLocalDate())
   const [showSuccess, setShowSuccess] = useState(false)
@@ -44,20 +44,13 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const { data, error } = await supabase
-          .from('Aplicaciones')
-          .select('id, Nombre')
-          .not('Nombre', 'is', null)
+        const aplicaciones = await getApplications()
 
-        if (error) {
-          console.error('Error fetching products:', error)
-          return
-        }
-
-        const productosMap = data.map(item => ({
-          id: item.id,
-          nombre: item.Nombre
-        }))
+        const productosMap = aplicaciones.map(item => ({
+          id: item.$id,
+          nombre: item.Nombre || ''
+        })).filter(p => p.nombre !== '')
+        
         setProductos(productosMap)
       } catch (error) {
         console.error('Error loading products:', error)
@@ -97,25 +90,18 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
       const results = await Promise.allSettled(
         selectedAnimals.map(async (animal) => {
           const insertData = {
-            created_at: fechaAplicacion,
             Producto: data.Producto,
             Cantidad: data.Cantidad,
             Motivo: data.Motivo || null,
-            Id_animal: animal.id.toString(),
+            Id_animal: animal.id_animal,
             Costo: data.Costo || null,
             aplicacion_id: selectedProduct?.id || null,
             Id_producto: selectedProduct?.id || null,
           };
 
-          const { error } = await supabase
-            .from('AplicacionesAnimal')
-            .insert(insertData)
+          await createApplicationForAnimal(insertData)
 
-          if (error) {
-            throw new Error(`Error para animal ID ${animal.id}: ${error.message}`)
-          }
-
-          return animal.id.toString()
+          return animal.id_animal
         })
       )
 
@@ -257,10 +243,10 @@ export default function MultiAnimalApplicationForm({ selectedAnimals }: MultiAni
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {selectedAnimals.map((animal) => (
-            <div key={animal.id} className="bg-white rounded-lg p-3 border border-blue-100 hover:shadow-md transition-shadow duration-200">
+            <div key={animal.$id} className="bg-white rounded-lg p-3 border border-blue-100 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
                 <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-sm">#{animal.id}</span>
+                  <span className="text-blue-600 font-bold text-sm">🐄</span>
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{animal.id_animal}</p>

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { aplicacionesSchema, type AplicacionesForm } from '@/lib/validations'
-import { supabase } from '@/lib/supabase'
+import { createApplication } from '@/lib/appwrite'
 import { Button } from '@/components/ui/Button'
 import {
   Card,
@@ -34,6 +34,7 @@ export default function NewApplicationPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<AplicacionesForm>({
     resolver: zodResolver(aplicacionesSchema),
@@ -51,24 +52,16 @@ export default function NewApplicationPage() {
   const onSubmit = async (data: AplicacionesForm) => {
     setIsSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('Aplicaciones')
-        .insert({
-          created_at: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-          Nombre: data.Nombre,
-          Descripcion: data.Descripcion || null,
-          Tipo: data.Tipo,
-        })
+      await createApplication({
+        Nombre: data.Nombre,
+        Descripcion: data.Descripcion || null,
+        Tipo: data.Tipo,
+      })
 
-      if (error) {
-        console.error('Error inserting application:', error)
-        alert('Error al guardar la aplicación')
-      } else {
-        setSuccess(true)
-      }
+      setSuccess(true)
     } catch (error) {
       console.error('Error:', error)
-      alert('Error inesperado')
+      alert('Error al guardar la aplicación')
     } finally {
       setIsSubmitting(false)
     }
@@ -121,16 +114,22 @@ export default function NewApplicationPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="Tipo">Tipo</Label>
-                <Select {...register('Tipo')}>
-                  <SelectTrigger id="Tipo">
-                    <SelectValue placeholder="Selecciona un tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Inyección">Inyección</SelectItem>
-                    <SelectItem value="Vitamina">Vitamina</SelectItem>
-                    <SelectItem value="Otro">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="Tipo"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger id="Tipo">
+                        <SelectValue placeholder="Selecciona un tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Inyección">Inyección</SelectItem>
+                        <SelectItem value="Vitamina">Vitamina</SelectItem>
+                        <SelectItem value="Otro">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
                 {errors.Tipo && (
                   <p className="text-sm text-destructive">{errors.Tipo.message}</p>
                 )}

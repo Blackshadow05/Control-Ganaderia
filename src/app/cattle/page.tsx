@@ -1,26 +1,11 @@
 import Link from 'next/link';
-import { supabase, type Ganado } from '@/lib/supabase';
+import { getCattle, type Ganado } from '@/lib/appwrite';
 import CattleList from '@/components/CattleList';
 import CattlePageHeader from '@/components/CattlePageHeader';
 
-// Fetch cattle data from Supabase - NO CACHE
+// Fetch cattle data from Appwrite - NO CACHE
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-// Fetch cattle data from Supabase
-async function getCattle(): Promise<Ganado[]> {
-  const { data, error } = await supabase
-    .from('Ganado')
-    .select('*')
-    .order('fecha_compra', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching cattle:', error);
-    return [];
-  }
-
-  return data || [];
-}
 
 export default async function CattlePage() {
   const cattle = await getCattle();

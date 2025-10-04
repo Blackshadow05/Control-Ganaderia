@@ -1,26 +1,22 @@
 export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getApplications, type Aplicaciones } from '@/lib/appwrite'
 import ApplicationEditForm from './ApplicationEditForm'
 
 async function getApplication(id: string) {
-  const { data, error } = await supabase
-    .from('Aplicaciones')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error) {
+  try {
+    const applications = await getApplications()
+    return applications.find(app => app.$id === id) || null
+  } catch (error) {
     console.error('Error fetching application:', error)
     return null
   }
-
-  return data
 }
 
-export default async function EditApplicationPage({ params }: { params: { id: string } }) {
-  const application = await getApplication(params.id)
+export default async function EditApplicationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const application = await getApplication(id)
 
   if (!application) {
     notFound()

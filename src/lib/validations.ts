@@ -1,17 +1,17 @@
 import { z } from 'zod';
 
-// Schema for cattle (Ganado table)
+// Schema for cattle (Ganado table) - Updated for Appwrite exact field types
 export const cattleSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(), // Changed to string for Appwrite $id
   id_animal: z.string().min(1, 'ID del animal es requerido'),
-  peso_entrada: z.number().min(0, 'Peso de entrada debe ser positivo'),
-  precio_kg: z.number().min(0, 'Precio por kg debe ser positivo'),
-  Precio_compra: z.number().min(0, 'Precio de compra debe ser positivo').nullable().optional(),
-  peso_salida: z.number().min(0).nullable().optional(),
-  precio_kg_venta: z.number().min(0).nullable().optional(),
-  Precio_venta: z.number().min(0, 'Precio de venta debe ser positivo').nullable().optional(),
+  peso_entrada: z.number().min(0, 'Peso de entrada debe ser positivo'), // Integer in Appwrite
+  precio_kg: z.number().min(0, 'Precio por kg debe ser positivo'), // Integer (cents) in Appwrite
+  Precio_compra: z.string().nullable().optional(), // String in Appwrite
+  peso_salida: z.string().nullable().optional(), // String in Appwrite
+  precio_kg_venta: z.number().nullable().optional(), // Integer (cents) in Appwrite
+  Precio_venta: z.string().nullable().optional(), // String in Appwrite
   farm_nombre: z.string().min(1, 'Nombre de la finca es requerido'),
-  farm_id: z.number().min(1, 'ID de la finca es requerido').nullable(),
+  farm_id: z.string().nullable().optional(), // String in Appwrite
   fecha_compra: z.string().min(1, 'Fecha de compra es requerida'),
   fecha_venta: z.string().nullable().optional(),
   Imagen: z.string().nullable().optional(),
@@ -55,9 +55,9 @@ export const aplicacionesAnimalSchema = z.object({
   Cantidad: z.string().min(1, 'Cantidad es requerida'),
   Motivo: z.string().optional(),
   Id_animal: z.string().min(1, 'ID del animal es requerido'),
-  Costo: z.number().min(0, 'Costo debe ser positivo').optional(),
-  aplicacion_id: z.number().optional().nullable(), // Foreign key field
-  Id_producto: z.number().optional().nullable(),   // Product ID for trigger
+  Costo: z.number().min(0, 'Costo debe ser positivo').optional(), // Back to number type
+  aplicacion_id: z.string().optional().nullable(), // Changed to string for Appwrite compatibility
+  Id_producto: z.string().optional().nullable(),   // Changed to string for Appwrite compatibility
 });
 
 export type AplicacionesAnimalForm = z.infer<typeof aplicacionesAnimalSchema>;

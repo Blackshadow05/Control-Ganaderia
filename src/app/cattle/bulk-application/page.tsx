@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase, type Ganado } from '@/lib/supabase'
+import { type Ganado } from '@/lib/appwrite'
 import MultiAnimalApplicationForm from '@/components/MultiAnimalApplicationForm'
 
 export default function BulkApplicationPage() {

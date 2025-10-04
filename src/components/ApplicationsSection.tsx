@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { type AplicacionesAnimalView } from '@/lib/supabase';
+import { type AplicacionesAnimalView } from '@/lib/appwrite';
 import { formatApplicationDate } from '@/lib/applicationDateUtils';
 import DeleteApplicationModal from './DeleteApplicationModal';
 
@@ -82,7 +82,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-gray-50">
+                  <tr key={app.$id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {app.Producto}
                     </td>
@@ -96,11 +96,11 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
                       {app.Motivo || 'Sin motivo especificado'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatApplicationDate(app.created_at)}
+                      {formatApplicationDate(app.created_at || app.$createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <Link
-                        href={`/cattle/${cattleId}/application/${app.id}/edit`}
+                        href={`/cattle/${cattleId}/application/${app.$id}/edit`}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         Editar
@@ -121,11 +121,11 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
             {applications.map((app) => (
-              <div key={app.id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
+              <div key={app.$id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">{app.Producto}</h3>
                   <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {formatApplicationDate(app.created_at)}
+                    {formatApplicationDate(app.created_at || app.$createdAt)}
                   </span>
                 </div>
 
@@ -151,7 +151,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
 
                 <div className="flex space-x-3 pt-3 border-t border-gray-200">
                   <Link
-                    href={`/cattle/${cattleId}/application/${app.id}/edit`}
+                    href={`/cattle/${cattleId}/application/${app.$id}/edit`}
                     className="flex-1 text-center px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
                   >
                     Editar
@@ -169,7 +169,7 @@ export default function ApplicationsSection({ applications, cattleId }: Applicat
 
           {appToDelete && (
             <DeleteApplicationModal
-              applicationId={appToDelete.id}
+              applicationId={appToDelete.$id}
               applicationName={appToDelete.Producto || ''}
               isOpen={isDeleteModalOpen}
               onClose={handleCloseDeleteModal}

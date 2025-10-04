@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { supabase, type Ganado, type AplicacionesAnimalView } from '@/lib/supabase';
+import { getCattleById, getApplicationsForAnimal, type Ganado, type AplicacionesAnimalView } from '@/lib/appwrite';
+import { getImageUrl } from '@/lib/imageUtils';
 import ApplicationsSection from '@/components/ApplicationsSection';
 import CattleImage from '@/components/CattleImage';
 import DeleteCattleButtonWithNotification from '@/components/DeleteCattleButtonWithNotification';
@@ -20,50 +21,45 @@ function formatCurrency(amount: number): string {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-
-// Fetch cattle data from Supabase
-async function getCattleById(id: number): Promise<Ganado | null> {
-  const { data, error } = await supabase
-    .from('Ganado')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching cattle:', error);
-    return null;
-  }
-
-  return data;
-}
-
-// Fetch applications for this animal from Supabase using the view
-async function getApplicationsForAnimal(animalId: string): Promise<AplicacionesAnimalView[]> {
-  const { data, error } = await supabase
-    .from('AplicacionesAnimal_View')
-    .select('*')
-    .eq('Id_animal', animalId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching applications:', error);
-    return [];
-  }
-
-  return data || [];
-}
-
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function CattleDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const cattle = await getCattleById(parseInt(id));
+  const cattle = await getCattleById(id);
   const applications = await getApplicationsForAnimal(id);
 
   if (!cattle) {
     notFound();
+  }
+
+  // Procesar la URL de la imagen si existe
+  let imageUrl = cattle.Imagen;
+  if (imageUrl) {
+    // Si la URL ya es una URL completa, la usamos directamente
+    if (imageUrl.startsWith('http')) {
+      // Verificar si es una URL antigua con /preview y convertirla a /view
+      if (imageUrl.includes('/preview?')) {
+        // Extraer el ID del archivo de la URL antigua
+        const urlParts = imageUrl.split('/');
+        const fileIdIndex = urlParts.findIndex(part => part === 'files') + 1;
+        
+        if (fileIdIndex > 0 && fileIdIndex < urlParts.length) {
+          const fileId = urlParts[fileIdIndex];
+          console.log('Converting old preview URL to view URL for file ID:', fileId);
+          imageUrl = getImageUrl(fileId);
+        } else {
+          console.log('Using full URL for image (could not extract file ID):', imageUrl);
+        }
+      } else {
+        console.log('Using full URL for image:', imageUrl);
+      }
+    } else {
+      // Si es solo un ID de archivo, obtenemos la URL completa
+      console.log('Getting URL for image ID:', imageUrl);
+      imageUrl = getImageUrl(imageUrl);
+    }
   }
 
   return (
@@ -83,12 +79,12 @@ export default async function CattleDetailPage({ params }: PageProps) {
             </Link>
             {!cattle.fecha_venta && (
               <MarkAsSoldButton
-                cattleId={parseInt(id)}
+                cattleId={id}
                 cattleName={cattle.id_animal}
               />
             )}
             <DeleteCattleButtonWithNotification
-              cattleId={parseInt(id)}
+              cattleId={id}
               cattleName={cattle.id_animal}
             />
           </div>
@@ -97,15 +93,19 @@ export default async function CattleDetailPage({ params }: PageProps) {
 
       <div className="bg-white shadow rounded-lg p-6">
         {/* Imagen del ganado */}
-        {cattle.Imagen && (
+        {imageUrl && (
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Imagen del Ganado</h2>
             <div className="flex justify-center">
               <CattleImage
-                src={cattle.Imagen}
+                src={imageUrl}
                 alt={`Imagen de ${cattle.id_animal}`}
                 className="max-w-full h-auto max-h-64 rounded-lg shadow-md object-contain"
               />
+            </div>
+            {/* Debug information - puede ser removido después */}
+            <div className="mt-2 text-xs text-gray-500 text-center">
+              URL de imagen: {imageUrl.substring(0, 100)}...
             </div>
           </div>
         )}
@@ -139,7 +139,7 @@ export default async function CattleDetailPage({ params }: PageProps) {
               {cattle.Precio_compra && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio de Compra Total</dt>
-                  <dd className="text-sm text-green-600 font-semibold">₡{formatCurrency(cattle.Precio_compra)}</dd>
+                  <dd className="text-sm text-green-600 font-semibold">₡{formatCurrency(parseFloat(cattle.Precio_compra || '0'))}</dd>
                 </div>
               )}
             </dl>
@@ -183,7 +183,7 @@ export default async function CattleDetailPage({ params }: PageProps) {
               {cattle.Precio_venta && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Precio de Venta Total</dt>
-                  <dd className="text-sm text-red-600 font-semibold">₡{formatCurrency(cattle.Precio_venta)}</dd>
+                  <dd className="text-sm text-red-600 font-semibold">₡{formatCurrency(parseFloat(cattle.Precio_venta || '0'))}</dd>
                 </div>
               )}
             </dl>
@@ -229,8 +229,8 @@ export default async function CattleDetailPage({ params }: PageProps) {
                   const totalAppCosts = applications
                     .filter(app => app.Costo)
                     .reduce((total, app) => total + (app.Costo || 0), 0);
-                  const totalCost = (cattle.Precio_compra || 0) + totalAppCosts;
-                  const profit = cattle.Precio_venta - totalCost;
+                  const totalCost = parseFloat(cattle.Precio_compra || '0') + totalAppCosts;
+                  const profit = parseFloat(cattle.Precio_venta || '0') - totalCost;
                   const isProfitable = profit > 0;
                   return (
                     <div className={`text-2xl font-bold ${isProfitable ? 'text-green-600' : 'text-red-600'}`}>
@@ -245,14 +245,14 @@ export default async function CattleDetailPage({ params }: PageProps) {
               const totalAppCosts = applications
                 .filter(app => app.Costo)
                 .reduce((total, app) => total + (app.Costo || 0), 0);
-              const totalCost = (cattle.Precio_compra || 0) + totalAppCosts;
-              const profit = cattle.Precio_venta - totalCost;
+              const totalCost = parseFloat(cattle.Precio_compra || '0') + totalAppCosts;
+              const profit = parseFloat(cattle.Precio_venta || '0') - totalCost;
               return (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">Precio de Compra:</p>
-                  <p className="font-semibold">₡{formatCurrency(cattle.Precio_compra || 0)}</p>
+                  <p className="font-semibold">₡{formatCurrency(parseFloat(cattle.Precio_compra || '0'))}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Costos de Aplicaciones:</p>
@@ -264,7 +264,7 @@ export default async function CattleDetailPage({ params }: PageProps) {
                     </div>
                     <div className="col-span-2">
                       <p className="text-gray-500 font-medium">Precio de Venta:</p>
-                      <p className="font-bold text-red-600">₡{formatCurrency(cattle.Precio_venta)}</p>
+                      <p className="font-bold text-red-600">₡{formatCurrency(parseFloat(cattle.Precio_venta || '0'))}</p>
                     </div>
                   </div>
                 </div>

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { deleteApplicationForAnimal } from '@/lib/appwrite';
 
 interface DeleteApplicationModalProps {
-  applicationId: number;
+  applicationId: string; // Changed to string for Appwrite
   applicationName: string;
   isOpen: boolean;
   onClose: () => void;
@@ -23,21 +23,12 @@ export default function DeleteApplicationModal({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('AplicacionesAnimal')
-        .delete()
-        .eq('id', applicationId);
-
-      if (error) {
-        console.error('Error deleting application:', error);
-        alert('Error al eliminar la aplicación');
-      } else {
-        onDelete();
-        onClose();
-      }
+      await deleteApplicationForAnimal(applicationId);
+      onDelete();
+      onClose();
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error inesperado al eliminar');
+      console.error('Error deleting application:', error);
+      alert('Error al eliminar la aplicación');
     } finally {
       setIsDeleting(false);
     }

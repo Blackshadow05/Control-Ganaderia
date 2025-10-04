@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type Ganado } from '@/lib/supabase';
+import { type Ganado } from '@/lib/appwrite';
 import CattleSearch from '@/components/CattleSearch';
 
 interface CattleListProps {
@@ -14,7 +14,7 @@ export default function CattleList({ initialCattle }: CattleListProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'sold'>('active');
-  const [selectedAnimals, setSelectedAnimals] = useState<Set<number>>(new Set());
+  const [selectedAnimals, setSelectedAnimals] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
 
   const filteredCattle = useMemo(() => {
@@ -50,7 +50,7 @@ export default function CattleList({ initialCattle }: CattleListProps) {
     setStatusFilter(newStatusFilter);
   };
 
-  const toggleAnimalSelection = (animalId: number) => {
+  const toggleAnimalSelection = (animalId: string) => {
     const newSelected = new Set(selectedAnimals);
     if (newSelected.has(animalId)) {
       newSelected.delete(animalId);
@@ -64,7 +64,7 @@ export default function CattleList({ initialCattle }: CattleListProps) {
     if (selectedAnimals.size === filteredCattle.length) {
       setSelectedAnimals(new Set());
     } else {
-      setSelectedAnimals(new Set(filteredCattle.map(animal => animal.id)));
+      setSelectedAnimals(new Set(filteredCattle.map(animal => animal.id_animal)));
     }
   };
 
@@ -73,7 +73,7 @@ export default function CattleList({ initialCattle }: CattleListProps) {
       alert('Por favor selecciona al menos un animal');
       return;
     }
-    const selectedAnimalsData = filteredCattle.filter(animal => selectedAnimals.has(animal.id));
+    const selectedAnimalsData = filteredCattle.filter(animal => selectedAnimals.has(animal.id_animal));
     // Store selected animals in sessionStorage to pass to the bulk application page
     sessionStorage.setItem('selectedAnimals', JSON.stringify(selectedAnimalsData));
     router.push('/cattle/bulk-application');
@@ -161,20 +161,20 @@ export default function CattleList({ initialCattle }: CattleListProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredCattle.map((item) => (
-              <tr key={item.id} className={`${selectionMode ? 'hover:bg-gray-50' : 'hover:bg-gray-50 cursor-pointer'}`}>
+              <tr key={item.id_animal} className={`${selectionMode ? 'hover:bg-gray-50' : 'hover:bg-gray-50 cursor-pointer'}`}>
                 {selectionMode && (
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input
                       type="checkbox"
-                      checked={selectedAnimals.has(item.id)}
-                      onChange={() => toggleAnimalSelection(item.id)}
+                      checked={selectedAnimals.has(item.id_animal)}
+                      onChange={() => toggleAnimalSelection(item.id_animal)}
                       onClick={(e) => e.stopPropagation()}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                   </td>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <Link href={`/cattle/${item.id}`} className="text-blue-600 hover:text-blue-800">
+                  <Link href={`/cattle/${item.id_animal}`} className="text-blue-600 hover:text-blue-800">
                     {item.id_animal}
                   </Link>
                 </td>
@@ -197,20 +197,20 @@ export default function CattleList({ initialCattle }: CattleListProps) {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {filteredCattle.map((item) => (
-          <div key={item.id} className={`bg-white rounded-xl border border-gray-100 ${selectionMode ? 'hover:shadow-md' : 'hover:border-blue-200 hover:shadow-md'} transition-all duration-200`}>
+          <div key={item.id_animal} className={`bg-white rounded-xl border border-gray-100 ${selectionMode ? 'hover:shadow-md' : 'hover:border-blue-200 hover:shadow-md'} transition-all duration-200`}>
             <div className={`p-4 ${selectionMode ? '' : 'cursor-pointer'}`} onClick={() => {
               if (selectionMode) {
-                toggleAnimalSelection(item.id)
+                toggleAnimalSelection(item.id_animal)
               } else {
-                router.push(`/cattle/${item.id}`)
+                router.push(`/cattle/${item.id_animal}`)
               }
             }}>
               {selectionMode && (
                 <div className="mb-3">
                   <input
                     type="checkbox"
-                    checked={selectedAnimals.has(item.id)}
-                    onChange={() => toggleAnimalSelection(item.id)}
+                    checked={selectedAnimals.has(item.id_animal)}
+                    onChange={() => toggleAnimalSelection(item.id_animal)}
                     onClick={(e) => e.stopPropagation()}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />

@@ -5,15 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { aplicacionesSchema, type AplicacionesForm } from '@/lib/validations'
-import { supabase } from '@/lib/supabase'
+import { updateApplication } from '@/lib/appwrite'
 import { Button } from '@/components/ui/Button'
 
 interface ApplicationEditFormProps {
   application: {
-    id: number
-    Nombre: string
+    $id: string
+    Nombre: string | null
     Descripcion: string | null
-    Tipo: string
+    Tipo: string | null
   }
 }
 
@@ -28,34 +28,26 @@ export default function ApplicationEditForm({ application }: ApplicationEditForm
   } = useForm<AplicacionesForm>({
     resolver: zodResolver(aplicacionesSchema),
     defaultValues: {
-      Nombre: application.Nombre,
+      Nombre: application.Nombre || '',
       Descripcion: application.Descripcion || '',
-      Tipo: application.Tipo,
+      Tipo: application.Tipo || '',
     },
   })
 
   const onSubmit = async (data: AplicacionesForm) => {
     setIsSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('Aplicaciones')
-        .update({
-          Nombre: data.Nombre,
-          Descripcion: data.Descripcion || null,
-          Tipo: data.Tipo,
-        })
-        .eq('id', application.id)
+      await updateApplication(application.$id, {
+        Nombre: data.Nombre,
+        Descripcion: data.Descripcion || null,
+        Tipo: data.Tipo,
+      })
 
-      if (error) {
-        console.error('Error updating application:', error)
-        alert('Error al actualizar la aplicación')
-      } else {
-        router.push('/applications')
-        router.refresh()
-      }
+      router.push('/applications')
+      router.refresh()
     } catch (error) {
       console.error('Error:', error)
-      alert('Error inesperado')
+      alert('Error al actualizar la aplicación')
     } finally {
       setIsSubmitting(false)
     }

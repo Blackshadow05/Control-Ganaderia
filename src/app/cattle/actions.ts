@@ -1,37 +1,34 @@
 'use server'
 
 import { redirect } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createCattle as createCattleInAppwrite, updateCattle as updateCattleInAppwrite, deleteCattle as deleteCattleFromAppwrite, getFarmById, getFarmByAppwriteId, type Ganado } from '@/lib/appwrite';
 import { cattleSchema } from '@/lib/validations';
 
 export async function createCattle(formData: FormData) {
   const farmIdValue = formData.get('farm_id');
-  const farmId = farmIdValue ? parseInt(farmIdValue as string) : null;
-  
+  const farmId = farmIdValue as string;
+
   if (!farmId) {
     throw new Error('ID de la finca es requerido');
   }
 
   // Get farm data to set farm_nombre
-  const { data: farmData, error: farmError } = await supabase
-    .from('Finca')
-    .select('*')
-    .eq('id', farmId)
-    .single();
+  const farmData = await getFarmByAppwriteId(farmId);
 
-  if (farmError || !farmData) {
-    throw new Error('Error al obtener datos de la finca: ' + (farmError?.message || 'Finca no encontrada'));
+  if (!farmData) {
+    throw new Error('Error al obtener datos de la finca: Finca no encontrada');
   }
 
   const data = {
     id_animal: formData.get('id_animal') as string,
     peso_entrada: parseFloat(formData.get('peso_entrada') as string),
     precio_kg: parseFloat(formData.get('precio_kg') as string),
-    Precio_compra: formData.get('Precio_compra') ? parseFloat(formData.get('Precio_compra') as string) : undefined,
-    peso_salida: formData.get('peso_salida') ? parseFloat(formData.get('peso_salida') as string) : null,
+    Precio_compra: formData.get('Precio_compra') ? (formData.get('Precio_compra') as string) : null,
+    peso_salida: formData.get('peso_salida') ? (formData.get('peso_salida') as string) : null,
     precio_kg_venta: formData.get('precio_kg_venta') ? parseFloat(formData.get('precio_kg_venta') as string) : null,
+    Precio_venta: formData.get('Precio_venta') ? (formData.get('Precio_venta') as string) : null,
     farm_id: farmId,
-    farm_nombre: `${farmData["Nombre-finca"]} - ${farmData["Nombre_apartado"]}`,
+    farm_nombre: `${farmData["Nombre-finca"] || ''} - ${farmData["Nombre_apartado"] || ''}`,
     fecha_compra: formData.get('fecha_compra') as string,
     fecha_venta: formData.get('fecha_venta') ? formData.get('fecha_venta') as string : null,
     Imagen: formData.get('Imagen') as string || null,
@@ -43,13 +40,11 @@ export async function createCattle(formData: FormData) {
     throw new Error('Datos inválidos: ' + validation.error.issues.map((issue: { message: string }) => issue.message).join(', '));
   }
 
-  // Insert into Supabase
-  const { error } = await supabase
-    .from('Ganado')
-    .insert([validation.data]);
-
-  if (error) {
-    throw new Error('Error al guardar el ganado: ' + error.message);
+  // Insert into Appwrite
+  try {
+    await createCattleInAppwrite(validation.data);
+  } catch (error) {
+    throw new Error('Error al guardar el ganado: ' + error);
   }
 
   redirect('/cattle');
@@ -57,32 +52,29 @@ export async function createCattle(formData: FormData) {
 
 export async function createCattleWithResult(formData: FormData) {
   const farmIdValue = formData.get('farm_id');
-  const farmId = farmIdValue ? parseInt(farmIdValue as string) : null;
-  
+  const farmId = farmIdValue as string;
+
   if (!farmId) {
     throw new Error('ID de la finca es requerido');
   }
 
   // Get farm data to set farm_nombre
-  const { data: farmData, error: farmError } = await supabase
-    .from('Finca')
-    .select('*')
-    .eq('id', farmId)
-    .single();
+  const farmData = await getFarmByAppwriteId(farmId);
 
-  if (farmError || !farmData) {
-    throw new Error('Error al obtener datos de la finca: ' + (farmError?.message || 'Finca no encontrada'));
+  if (!farmData) {
+    throw new Error('Error al obtener datos de la finca: Finca no encontrada');
   }
 
   const data = {
     id_animal: formData.get('id_animal') as string,
     peso_entrada: parseFloat(formData.get('peso_entrada') as string),
     precio_kg: parseFloat(formData.get('precio_kg') as string),
-    Precio_compra: formData.get('Precio_compra') ? parseFloat(formData.get('Precio_compra') as string) : undefined,
-    peso_salida: formData.get('peso_salida') ? parseFloat(formData.get('peso_salida') as string) : null,
+    Precio_compra: formData.get('Precio_compra') ? (formData.get('Precio_compra') as string) : null,
+    peso_salida: formData.get('peso_salida') ? (formData.get('peso_salida') as string) : null,
     precio_kg_venta: formData.get('precio_kg_venta') ? parseFloat(formData.get('precio_kg_venta') as string) : null,
+    Precio_venta: formData.get('Precio_venta') ? (formData.get('Precio_venta') as string) : null,
     farm_id: farmId,
-    farm_nombre: `${farmData["Nombre-finca"]} - ${farmData["Nombre_apartado"]}`,
+    farm_nombre: `${farmData["Nombre-finca"] || ''} - ${farmData["Nombre_apartado"] || ''}`,
     fecha_compra: formData.get('fecha_compra') as string,
     fecha_venta: formData.get('fecha_venta') ? formData.get('fecha_venta') as string : null,
     Imagen: formData.get('Imagen') as string || null,
@@ -94,44 +86,36 @@ export async function createCattleWithResult(formData: FormData) {
     throw new Error('Datos inválidos: ' + validation.error.issues.map((issue: { message: string }) => issue.message).join(', '));
   }
 
-  // Insert into Supabase
-  const { data: insertedData, error } = await supabase
-    .from('Ganado')
-    .insert([validation.data])
-    .select()
-    .single();
+  // Insert into Appwrite
+  try {
+    const insertedData = await createCattleInAppwrite(validation.data);
 
-  if (error) {
-    throw new Error('Error al guardar el ganado: ' + error.message);
+    // Return success result instead of redirecting
+    return {
+      success: true,
+      message: 'Ganado registrado exitosamente',
+      data: insertedData
+    };
+  } catch (error) {
+    throw new Error('Error al guardar el ganado: ' + error);
   }
-
-  // Return success result instead of redirecting
-  return {
-    success: true,
-    message: 'Ganado registrado exitosamente',
-    data: insertedData
-  };
 }
 
-export async function updateCattle(id: number, formData: FormData) {
+export async function updateCattle(id: string, formData: FormData) {
   const farmIdValue = formData.get('farm_id');
   const farmId = farmIdValue ? parseInt(farmIdValue as string) : null;
-  
+
   let farmNombre = formData.get('farm_nombre') as string;
-  
+
   // If farm_id is provided, get the farm data
   if (farmId) {
-    const { data: farmData, error: farmError } = await supabase
-      .from('Finca')
-      .select('*')
-      .eq('id', farmId)
-      .single();
+    const farmData = await getFarmByAppwriteId(farmId);
 
-    if (farmError || !farmData) {
-      throw new Error('Error al obtener datos de la finca: ' + (farmError?.message || 'Finca no encontrada'));
+    if (!farmData) {
+      throw new Error('Error al obtener datos de la finca: Finca no encontrada');
     }
-    
-    farmNombre = `${farmData["Nombre-finca"]} - ${farmData["Nombre_apartado"]}`;
+
+    farmNombre = `${farmData["Nombre-finca"] || ''} - ${farmData["Nombre_apartado"] || ''}`;
   }
 
   const data = {
@@ -155,32 +139,26 @@ export async function updateCattle(id: number, formData: FormData) {
     throw new Error('Datos inválidos: ' + validation.error.issues.map((issue: { message: string }) => issue.message).join(', '));
   }
 
-  // Update in Supabase
-  const { error } = await supabase
-    .from('Ganado')
-    .update(validation.data)
-    .eq('id', id);
-
-  if (error) {
-    throw new Error('Error al actualizar el ganado: ' + error.message);
+  // Update in Appwrite
+  try {
+    await updateCattleInAppwrite(id, validation.data);
+  } catch (error) {
+    throw new Error('Error al actualizar el ganado: ' + error);
   }
 
   redirect(`/cattle/${id}`);
 }
 
-export async function deleteCattleWithResult(id: number) {
-  const { error } = await supabase
-    .from('Ganado')
-    .delete()
-    .eq('id', id);
+export async function deleteCattleWithResult(id: string) {
+  try {
+    await deleteCattleFromAppwrite(id);
 
-  if (error) {
-    throw new Error('Error al eliminar el ganado: ' + error.message);
+    // Return success result instead of redirecting
+    return {
+      success: true,
+      message: 'Ganado eliminado exitosamente'
+    };
+  } catch (error) {
+    throw new Error('Error al eliminar el ganado: ' + error);
   }
-
-  // Return success result instead of redirecting
-  return {
-    success: true,
-    message: 'Ganado eliminado exitosamente'
-  };
 }

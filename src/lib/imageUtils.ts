@@ -1,4 +1,10 @@
-import { supabase } from './supabase';
+import { Client, Storage, ID } from 'appwrite';
+
+const client = new Client()
+  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
+
+const storage = new Storage(client);
 
 export async function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
@@ -78,59 +84,76 @@ function dataURLToBlob(dataURL: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-export async function uploadImage(file: File, bucketName: string = 'cattle-images'): Promise<string | null> {
+export async function uploadImage(file: File, bucketName: string = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || 'default'): Promise<string | null> {
   try {
     // Compress image first
     const compressedFile = await compressImage(file);
 
     // Generate unique filename
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.webp`;
-    const filePath = `cattle/${fileName}`;
 
-    // Upload compressed file to Supabase Storage
-    const { error } = await supabase.storage
-      .from(bucketName)
-      .upload(filePath, compressedFile, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    // Upload compressed file to Appwrite Storage
+    const response = await storage.createFile(
+      bucketName,
+      ID.unique(),
+      compressedFile
+    );
 
-    if (error) {
-      console.error('Error uploading image:', error);
-      throw error;
+    if (!response.$id) {
+      throw new Error('Failed to upload file to Appwrite Storage');
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(filePath);
+    // Get file view URL (not preview) for proper display
+    const fileUrl = storage.getFileView(
+      bucketName,
+      response.$id
+    );
 
-    return publicUrl;
+    const url = fileUrl.toString();
+    console.log('Generated image URL:', url);
+    return url;
   } catch (error) {
     console.error('Error in uploadImage:', error);
     return null;
   }
 }
 
-export async function deleteImage(imageUrl: string, bucketName: string = 'cattle-images'): Promise<boolean> {
+export async function deleteImage(imageUrl: string, bucketName: string = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || 'default'): Promise<boolean> {
   try {
-    // Extract file path from URL
+    // Extract file ID from URL
+    // Appwrite URL format: https://cloud.appwrite.io/v1/storage/buckets/bucketId/files/fileId/view?project=...
     const urlParts = imageUrl.split('/');
-    const fileName = urlParts[urlParts.length - 1];
-    const filePath = `cattle/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from(bucketName)
-      .remove([filePath]);
-
-    if (error) {
-      console.error('Error deleting image:', error);
-      return false;
+    const fileIdIndex = urlParts.findIndex(part => part === 'files') + 1;
+    
+    if (fileIdIndex <= 0 || fileIdIndex >= urlParts.length) {
+      throw new Error('Invalid image URL format');
     }
+    
+    const fileId = urlParts[fileIdIndex];
+    
+    // Remove any query parameters from the file ID
+    const cleanFileId = fileId.split('?')[0];
+
+    await storage.deleteFile(bucketName, cleanFileId);
 
     return true;
   } catch (error) {
     console.error('Error in deleteImage:', error);
     return false;
+  }
+}
+
+// Función para obtener la URL de una imagen de Appwrite Storage
+export function getImageUrl(fileId: string, bucketName: string = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || 'default'): string {
+  try {
+    const fileUrl = storage.getFileView(
+      bucketName,
+      fileId
+    );
+
+    return fileUrl.toString();
+  } catch (error) {
+    console.error('Error getting image URL:', error);
+    return '';
   }
 }

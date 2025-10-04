@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createCattleWithResult } from '../actions';
-import { supabase, Finca } from '@/lib/supabase';
+import { getFarms, type Finca } from '@/lib/appwrite';
 import { uploadImage, compressImage } from '@/lib/imageUtils';
 import Image from 'next/image';
 
@@ -33,14 +33,14 @@ export default function NewCattlePage() {
     }
   }, [pesoEntrada, precioKg]);
 
-  // Fetch fincas from Supabase
+  // Fetch fincas from Appwrite
   useEffect(() => {
     const fetchFincas = async () => {
-      const { data, error } = await supabase.from('Finca').select('*');
-      if (error) {
+      try {
+        const data = await getFarms();
+        setFincas(data);
+      } catch (error) {
         console.error('Error fetching fincas:', error);
-      } else {
-        setFincas(data || []);
       }
     };
     fetchFincas();
@@ -120,6 +120,7 @@ export default function NewCattlePage() {
       // Add image URL if available
       if (imageUrl) {
         formData.append('Imagen', imageUrl);
+        console.log('Image URL added to form data:', imageUrl);
       }
 
       // Submit form
@@ -295,7 +296,7 @@ export default function NewCattlePage() {
                   >
                     <option value="">Selecciona una finca y apartado</option>
                     {fincas.map((finca) => (
-                      <option key={finca.id} value={finca.id}>
+                      <option key={finca.$id} value={finca.$id}>
                         {`${finca["Nombre-finca"] || ''} - ${finca["Nombre_apartado"] || ''}`}
                       </option>
                     ))}

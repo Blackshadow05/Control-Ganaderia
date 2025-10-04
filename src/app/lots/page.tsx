@@ -2,40 +2,31 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
-import { supabase } from '@/lib/supabase';
-import type { Finca } from '@/lib/supabase';
+import { getFarms, deleteFarm, type Finca } from '@/lib/appwrite';
 import DeleteLotButton from '@/components/DeleteLotButton';
 
 export async function deleteLot(formData: FormData) {
   'use server';
 
   const id = formData.get('id') as string;
-  
-  const { error } = await supabase
-    .from('Finca')
-    .delete()
-    .eq('id', id);
 
-  if (error) {
+  try {
+    await deleteFarm(id);
+  } catch (error) {
     console.error('Error deleting lot:', error);
     // Podemos redirigir a una página de error si es necesario
   }
-  
+
   revalidatePath('/lots');
 }
 
 async function getLots(): Promise<Finca[]> {
-  const { data, error } = await supabase
-    .from('Finca')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
+  try {
+    return await getFarms();
+  } catch (error) {
     console.error('Error fetching lots:', error);
     return [];
   }
-
-  return data || [];
 }
 
 export default async function LotsPage() {
@@ -54,7 +45,7 @@ export default async function LotsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {lots.map((lot) => (
-          <div key={lot.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div key={lot.$id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">{lot['Nombre-finca']}</h3>
               <span className="text-2xl">🌾</span>
@@ -64,17 +55,17 @@ export default async function LotsPage() {
                 <span className="font-medium">Apartado:</span> {lot['Nombre_apartado']}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Fecha de creación:</span> {new Date(lot.created_at).toLocaleDateString('es-ES')}
+                <span className="font-medium">Fecha de creación:</span> {new Date(lot.$createdAt).toLocaleDateString('es-ES')}
               </p>
             </div>
             <div className="mt-4 flex space-x-2">
-              <Link href={`/lots/${lot.id}`} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors">
+              <Link href={`/lots/${lot.$id}`} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                 Ver Detalles
               </Link>
-              <Link href={`/lots/${lot.id}/edit`} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors">
+              <Link href={`/lots/${lot.$id}/edit`} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                 Editar
               </Link>
-              <DeleteLotButton lotId={lot.id} />
+              <DeleteLotButton lotId={lot.$id} />
             </div>
           </div>
         ))}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { aplicacionesAnimalSchema, type AplicacionesAnimalForm } from '@/lib/validations'
-import { supabase } from '@/lib/supabase'
+import { getApplications, createApplicationForAnimal, type Aplicaciones } from '@/lib/appwrite'
 import { Button } from '@/components/ui/Button'
 import { getLocalDate, getMaxDate, isFutureDate } from '@/lib/dateUtils'
 
@@ -18,7 +18,7 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [animalId, setAnimalId] = useState<string>('')
-  const [productos, setProductos] = useState<{id: number, nombre: string}[]>([])
+  const [productos, setProductos] = useState<{id: string, nombre: string}[]>([])
   const [loadingProductos, setLoadingProductos] = useState(true)
   const [fechaAplicacion, setFechaAplicacion] = useState<string>(getLocalDate())
 
@@ -62,21 +62,14 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const { data, error } = await supabase
-          .from('Aplicaciones')
-          .select('id, Nombre')
-          .not('Nombre', 'is', null)
-
-        if (error) {
-          console.error('Error fetching products:', error)
-          return
-        }
+        const data = await getApplications()
 
         // Store products with their IDs for foreign key reference
         const productosMap = data.map(item => ({
-          id: item.id,
-          nombre: item.Nombre
-        }))
+          id: item.$id, // Use Appwrite document ID
+          nombre: item.Nombre || ''
+        })).filter(item => item.nombre !== '') // Filter out empty names
+        
         setProductos(productosMap)
       } catch (error) {
         console.error('Error loading products:', error)
@@ -102,20 +95,6 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
 
     setIsSubmitting(true)
     try {
-      // First, let's test if we can read from the table
-      const { data: testData, error: testError } = await supabase
-        .from('AplicacionesAnimal')
-        .select('*')
-        .limit(1)
-
-      if (testError) {
-        console.error('Table test failed:', testError)
-        alert(`La tabla 'AplicacionesAnimal' no existe o no tienes permisos. Error: ${testError.message}`)
-        return
-      }
-
-      console.log('Test data read successfully:', testData)
-
       // Validate the application date (no timezone issues, just local date)
       if (isFutureDate(fechaAplicacion)) {
         alert('Error: No se pueden registrar aplicaciones con fechas futuras')
@@ -130,27 +109,17 @@ export default function NewApplicationForm({ params }: NewApplicationFormProps) 
       const selectedProduct = productos.find(p => p.nombre === data.Producto)
       
       const insertData = {
-        created_at: applicationDate,  // Local date without timezone conversion
         Producto: data.Producto,
         Cantidad: data.Cantidad,
         Motivo: data.Motivo || null,
         Id_animal: animalId,
-        Costo: data.Costo || null,
-        aplicacion_id: selectedProduct?.id || null, // Foreign key reference
-        Id_producto: selectedProduct?.id || null,  // Product ID for trigger
+        Costo: data.Costo || null, // Back to number type
+        aplicacion_id: selectedProduct?.id || null, // Foreign key reference (string)
+        Id_producto: selectedProduct?.id || null,  // Product ID for trigger (string)
       };
 
-      const { error } = await supabase
-        .from('AplicacionesAnimal')
-        .insert(insertData)
-        .select()
-
-      if (error) {
-        console.error('Error inserting application:', error)
-        alert(`Error al guardar la aplicación: ${error.message}`)
-      } else {
-        setSuccess(true)
-      }
+      await createApplicationForAnimal(insertData)
+      setSuccess(true)
     } catch (error) {
       console.error('Error:', error)
       alert('Error inesperado al guardar')

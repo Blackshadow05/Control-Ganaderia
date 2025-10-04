@@ -1,10 +1,10 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { deleteApplication } from '@/lib/appwrite'
 
 interface DeleteApplicationButtonProps {
-  applicationId: number
+  applicationId: string
   onDelete?: () => void
 }
 
@@ -17,24 +17,16 @@ export default function DeleteApplicationButton({ applicationId, onDelete }: Del
     }
 
     try {
-      const { error } = await supabase
-        .from('Aplicaciones')
-        .delete()
-        .eq('id', applicationId)
+      await deleteApplication(applicationId)
 
-      if (error) {
-        console.error('Error deleting application:', error)
-        alert('Error al eliminar el producto')
+      if (onDelete) {
+        onDelete()
       } else {
-        if (onDelete) {
-          onDelete()
-        } else {
-          router.refresh()
-        }
+        router.refresh()
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Error inesperado al eliminar')
+      alert('Error al eliminar el producto')
     }
   }
 

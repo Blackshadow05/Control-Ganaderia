@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import ConfirmationModal from './ConfirmationModal';
 
 interface DeleteLotButtonProps {
-  lotId: number;
+  lotId: string;
 }
 
 export default function DeleteLotButton({ lotId }: DeleteLotButtonProps) {

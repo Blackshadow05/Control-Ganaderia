@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fincaSchema, type FincaForm } from '@/lib/validations'
-import { supabase } from '@/lib/supabase'
+import { createFarm } from '@/lib/appwrite'
 import { Button } from '@/components/ui/Button'
 import {
   Card,
@@ -33,38 +33,15 @@ export default function NewLotPage() {
   const onSubmit = async (data: FincaForm) => {
     setIsSubmitting(true)
     try {
-      // First, let's test if we can read from the table
-      const { data: testData, error: testError } = await supabase
-        .from('Finca')
-        .select('*')
-        .limit(1)
+      await createFarm({
+        "Nombre-finca": data["Nombre-finca"],
+        "Nombre_apartado": data["Nombre_apartado"],
+      })
 
-      if (testError) {
-        console.error('Error reading from Finca table:', testError)
-        alert(`Error de conexión: ${testError.message}`)
-        return
-      }
-
-      console.log('Test data read successfully:', testData)
-
-      // Now try to insert
-      const { error } = await supabase
-        .from('Finca')
-        .insert({
-          created_at: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-          "Nombre-finca": data["Nombre-finca"],
-          "Nombre_apartado": data["Nombre_apartado"],
-        })
-
-      if (error) {
-        console.error('Error inserting lot:', error)
-        alert(`Error al guardar el lote: ${error.message}`)
-      } else {
-        router.push('/lots')
-      }
+      router.push('/lots')
     } catch (error) {
       console.error('Error:', error)
-      alert('Error inesperado')
+      alert(`Error al guardar el lote: ${error}`)
     } finally {
       setIsSubmitting(false)
     }
